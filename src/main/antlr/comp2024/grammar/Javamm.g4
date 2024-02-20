@@ -13,7 +13,12 @@ RCURLY : '}' ;
 LPAREN : '(' ;
 RPAREN : ')' ;
 MUL : '*' ;
+DIV : '/' ;
 ADD : '+' ;
+SUB : '-' ;
+NOT : '!' ;
+AND : '&&' ;
+LESS : '<' ;
 
 CLASS : 'class' ;
 INT : 'int' ;
@@ -63,8 +68,11 @@ stmt
     ;
 
 expr
-    : expr op= MUL expr #BinaryExpr //
-    | expr op= ADD expr #BinaryExpr //
+    : expr op= (MUL | DIV) expr #BinaryExpr //
+    | expr op= (ADD | SUB) expr #BinaryExpr //
+    | op= NOT expr #UnaryExpr //
+    | expr op= AND expr #BinaryExpr //
+    | expr op= LESS expr #BinaryExpr //
     | value=INTEGER #IntegerLiteral //
     | name=ID #VarRefExpr //
     ;
