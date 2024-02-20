@@ -7,10 +7,7 @@ import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.TypeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static pt.up.fe.comp2024.ast.Kind.METHOD_DECL;
 import static pt.up.fe.comp2024.ast.Kind.VAR_DECL;
@@ -29,7 +26,9 @@ public class JmmSymbolTableBuilder {
         var params = buildParams(classDecl);
         var locals = buildLocals(classDecl);
 
-        return new JmmSymbolTable(className, methods, returnTypes, params, locals);
+        return new JmmSymbolTable(className, methods, returnTypes, params, locals ,
+                // TODO
+                Collections.emptyList(), Collections.emptyList());
     }
 
     private static Map<String, Type> buildReturnTypes(JmmNode classDecl) {

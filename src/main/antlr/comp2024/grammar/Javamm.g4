@@ -4,6 +4,8 @@ grammar Javamm;
     package pt.up.fe.comp2024;
 }
 
+IMPORT : 'import' ;
+
 EQUALS : '=';
 SEMI : ';' ;
 LCURLY : '{' ;
@@ -22,6 +24,8 @@ INTEGER : [0-9] ;
 ID : [a-zA-Z]+ ;
 
 WS : [ \t\n\r\f]+ -> skip ;
+
+
 
 program
     : classDecl EOF
