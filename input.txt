@@ -1,2 +1,4 @@
+
+import Master;
 class a{
 }

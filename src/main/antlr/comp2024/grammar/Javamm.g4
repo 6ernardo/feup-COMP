@@ -33,9 +33,11 @@ WS : [ \t\n\r\f]+ -> skip ;
 
 
 program
-    : classDecl EOF
+    : importDecl* classDecl EOF
     ;
 
+importDecl
+    : IMPORT name=ID SEMI;
 
 classDecl
     : CLASS name=ID

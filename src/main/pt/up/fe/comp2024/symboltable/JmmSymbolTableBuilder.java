@@ -17,7 +17,25 @@ public class JmmSymbolTableBuilder {
 
     public static JmmSymbolTable build(JmmNode root) {
 
-        var classDecl = root.getJmmChild(0);
+        // =========Added this ========
+        // we have import statement followed by a class declaration
+        // resolve the import statements if there is any
+        int i= 0;
+        List<String> imports = new ArrayList<>();
+
+        while(true){
+            var temp = root.getJmmChild(i);
+            if (!Kind.IMPORT_DECL.check(temp)) break;
+            i++;
+            var impname = temp.get("name");
+            imports.add(impname);
+        }
+
+        // ============================
+
+        var classDecl = root.getJmmChild(i); // was 0 changed to i
+
+
         SpecsCheck.checkArgument(Kind.CLASS_DECL.check(classDecl), () -> "Expected a class declaration: " + classDecl);
         String className = classDecl.get("name");
 
@@ -28,7 +46,7 @@ public class JmmSymbolTableBuilder {
 
         return new JmmSymbolTable(className, methods, returnTypes, params, locals ,
                 // TODO
-                Collections.emptyList(), Collections.emptyList());
+                imports, Collections.emptyList());
     }
 
     private static Map<String, Type> buildReturnTypes(JmmNode classDecl) {
