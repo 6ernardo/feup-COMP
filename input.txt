@@ -1,4 +1,10 @@
 
 import Master;
 class a{
+    public int anyotherfunction(int som) {
+        ifStmt;
+        return res;
+    }
+
+    int foo(int anInt, int[] anArray, boolean aBool, String aString) {return a;}
 }
