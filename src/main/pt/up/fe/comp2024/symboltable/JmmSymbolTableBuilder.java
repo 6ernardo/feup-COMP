@@ -15,23 +15,22 @@ import static pt.up.fe.comp2024.ast.Kind.VAR_DECL;
 public class JmmSymbolTableBuilder {
 
     public static JmmSymbolTable build(JmmNode root) {
-
         var imports = buildImports(root);
 
         var classDecl = root.getJmmChild(root.getNumChildren() - 1); // was 0 changed to i
 
-
         SpecsCheck.checkArgument(Kind.CLASS_DECL.check(classDecl), () -> "Expected a class declaration: " + classDecl);
         String className = classDecl.get("name");
 
-        String superClass = classDecl.get("superclass");
+        String superClass = classDecl.hasAttribute("superclass") ? classDecl.get("superclass") : null;
 
+        var fields = buildFields(classDecl); // added this line
         var methods = buildMethods(classDecl);
         var returnTypes = buildReturnTypes(classDecl);
         var params = buildParams(classDecl);
         var locals = buildLocals(classDecl);
 
-        return new JmmSymbolTable(className, superClass, methods, returnTypes, params, locals, imports, Collections.emptyList());
+        return new JmmSymbolTable(className, superClass, methods, returnTypes, params, locals, imports, fields);
     }
 
     private static Map<String, Type> buildReturnTypes(JmmNode classDecl) {
@@ -57,6 +56,17 @@ public class JmmSymbolTableBuilder {
         }
         return imports;
     }
+
+    private static List<Symbol> buildFields(JmmNode classDecl) {
+        // TODO: Simple implementation that needs to be expanded
+
+        var intType = new Type(TypeUtils.getIntTypeName(), false);
+
+        return classDecl.getChildren(VAR_DECL).stream()
+                .map(varDecl -> new Symbol(intType, varDecl.get("name")))
+                .toList();
+    }
+
     private static Map<String, List<Symbol>> buildParams(JmmNode classDecl) {
         // TODO: Simple implementation that needs to be expanded
 

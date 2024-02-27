@@ -51,6 +51,7 @@ EXTENDS : 'extends' ;
 PUBLIC : 'public' ;
 RETURN : 'return' ;
 
+
 INTEGER : '0' | [1-9] [0-9]* ;
 ID : [a-zA-Z_$] [a-zA-Z_$0-9]* ;
 
@@ -70,8 +71,6 @@ classDecl
         LCURLY
         varDecl*
         methodDecl*
-        mainMethod?
-        methodDecl*
         RCURLY
     ;
 
@@ -86,16 +85,7 @@ type
     | name= BOOLEAN
     | name= STRING
     | name= ID
-    ;
-
-mainMethod locals[boolean isPublic=false]
-    : (PUBLIC {$isPublic=true;})?
-          STATIC VOID name=MAIN
-          LPAREN STRING LBRACK RBRACK name=ID RPAREN
-          LCURLY
-              varDecl*
-              stmt*
-          RCURLY
+    | name= STRING
     ;
 
 methodDecl locals[boolean isPublic=false]
@@ -106,6 +96,13 @@ methodDecl locals[boolean isPublic=false]
             varDecl*
             stmt*
             RETURN expr SEMI
+        RCURLY
+    | (PUBLIC {$isPublic=true;})?
+        STATIC VOID name=MAIN
+        LPAREN STRING LBRACK RBRACK name=ID RPAREN
+        LCURLY
+            varDecl*
+            stmt*
         RCURLY
     ;
 

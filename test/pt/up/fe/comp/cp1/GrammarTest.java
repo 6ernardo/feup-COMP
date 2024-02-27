@@ -19,7 +19,7 @@ import pt.up.fe.comp.TestUtils;
 public class GrammarTest {
 
     private static final String IMPORT = "importDecl";
-    private static final String MAIN_METHOD = "mainMethod";
+    private static final String MAIN_METHOD = "methodDecl";
     private static final String INSTANCE_METHOD = "methodDecl";
     private static final String STATEMENT = "stmt";
     private static final String EXPRESSION = "expr";
@@ -56,7 +56,7 @@ public class GrammarTest {
 
     @Test
     public void testInstanceMethodEmpty() {
-        TestUtils.parseVerbose("int foo(int anInt, int[] anArray, boolean aBool, String aString) {return a;}",
+        TestUtils.parseVerbose("int foo(int anInt, int[] anArray, boolean aBool, JHdwa aString) {return a;}",
                 INSTANCE_METHOD);
     }
 

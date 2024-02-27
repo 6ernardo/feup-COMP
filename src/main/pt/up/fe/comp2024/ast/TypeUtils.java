@@ -8,8 +8,32 @@ public class TypeUtils {
 
     private static final String INT_TYPE_NAME = "int";
 
+
+    /// Added These
+    private static final String BOOLEAN_TYPE_NAME = "boolean";
+    private static final String STRING_TYPE_NAME = "String";
+    private static final String VOID_TYPE_NAME = "void";
+    private static final String INT_ARRAY_TYPE_NAME = "int[]";
+    private static final String INT_ELLIPSIS_TYPE_NAME = "int...";
+
+
     public static String getIntTypeName() {
         return INT_TYPE_NAME;
+    }
+
+    // and these
+    public static String getBooleanTypeName() {return BOOLEAN_TYPE_NAME;}
+    public static String getStringTypeName() {
+        return STRING_TYPE_NAME;
+    }
+    public static String getVoidTypeName() {
+        return VOID_TYPE_NAME;
+    }
+    public static String getIntArrayTypeName() {
+        return INT_ARRAY_TYPE_NAME;
+    }
+    public static String getIntEllipsisTypeName() {
+        return INT_ELLIPSIS_TYPE_NAME;
     }
 
     /**
