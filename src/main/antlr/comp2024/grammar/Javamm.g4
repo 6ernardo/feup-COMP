@@ -4,10 +4,6 @@ grammar Javamm;
     package pt.up.fe.comp2024;
 }
 
-
-
-
-
 EQUALS : '=';
 SEMI : ';' ;
 LCURLY : '{' ;
@@ -32,6 +28,7 @@ CLASS : 'class' ;
 INT : 'int' ;
 
 // ============ Added this ============
+STRING : 'String' ;
 CHAR : 'char' ;
 VOID : 'void' ;
 IMPORT : 'import' ;
@@ -69,7 +66,7 @@ importDecl
     : IMPORT name=ID ( '.' ID)* SEMI;
 
 classDecl
-    : CLASS name=ID (EXTENDS name=ID)?
+    : CLASS name=ID (EXTENDS superclass=ID)?
         LCURLY
         varDecl*
         methodDecl*
@@ -87,13 +84,14 @@ type
     | name= INT ELLIPSIS
     | name= INT
     | name= BOOLEAN
+    | name= STRING
     | name= ID
     ;
 
 mainMethod locals[boolean isPublic=false]
     : (PUBLIC {$isPublic=true;})?
           STATIC VOID name=MAIN
-          LPAREN 'String' LBRACK RBRACK name=ID RPAREN
+          LPAREN STRING LBRACK RBRACK name=ID RPAREN
           LCURLY
               varDecl*
               stmt*
@@ -143,6 +141,3 @@ expr
     | name=ID #VarRefExpr //
     | THIS #ThisExpr //
     ;
-
-
-
