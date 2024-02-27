@@ -1,6 +1,6 @@
 import io;
 import List;
 
-class T{
+class T extends List {
 
 }
