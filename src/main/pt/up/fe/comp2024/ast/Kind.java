@@ -19,9 +19,11 @@ public enum Kind {
     INTEGER_LITERAL,
     VAR_REF_EXPR,
 
+    BOOL_LITERAL, // Added this kind
+    STRING_LITERAL, // Added this kind
+
     // Added this kind
     IMPORT_DECL;
-
     private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, RETURN_STMT);
     private static final Set<Kind> EXPRESSIONS = Set.of(BINARY_EXPR, INTEGER_LITERAL, VAR_REF_EXPR);
 
