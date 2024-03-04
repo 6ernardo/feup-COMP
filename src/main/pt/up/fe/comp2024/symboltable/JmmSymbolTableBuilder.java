@@ -21,6 +21,7 @@ public class JmmSymbolTableBuilder {
 
         var className = classDecl.get("name");
         var superClass = classDecl.hasAttribute("superclass") ? classDecl.get("superclass") : null;
+
         var fields = buildFields(classDecl);
         var methods = buildMethods(classDecl);
         var returnTypes = buildReturnTypes(classDecl);
