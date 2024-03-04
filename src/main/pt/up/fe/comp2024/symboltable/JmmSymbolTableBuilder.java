@@ -109,9 +109,10 @@ public class JmmSymbolTableBuilder {
                     var methodChild = child.getJmmChild(y);
 
                     if (Kind.PARAM.check(methodChild)) {
-                        var paramName = methodChild.get("name");                                    // Get the parameter name
-                        var paramType = methodChild.getChildren().get(0).get("name");               // Get the parameter type
-                        paramsList.add(new Symbol(new Type(paramType, false), paramName));   // Add it to the list
+                        var paramName = methodChild.get("name");                              // Get the parameter name
+                        var paramType = methodChild.getChildren().get(0).get("name");         // Get the parameter type
+                        paramsList.add(new Symbol(new Type(paramType,
+                                methodChild.getChildren().get(0).get("isArray").equals("true")), paramName));
                     }
                 }
                 map.put(methodName, paramsList);                                    // Add the list to the map
