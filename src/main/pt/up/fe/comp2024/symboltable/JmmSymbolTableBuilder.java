@@ -49,14 +49,20 @@ public class JmmSymbolTableBuilder {
     private static List<Symbol> buildFields(JmmNode classDecl) {
         List<Symbol> fields = new ArrayList<>();
 
-        for (int i = 0; i < classDecl.getNumChildren(); i++) {
-            var child = classDecl.getJmmChild(i);                                   // Get the child
+        for (var field : classDecl.getChildren(VAR_DECL)) {
+            var varName = field.get("name");                                    // Get the variable name
+            var varTypeName = field.getChild(0).get("name");               // Get the variable type
+            var isVarTypeArray = field.getChild(0).get("isArray").equals("true");
 
-            if (Kind.VAR_DECL.check(child)) {
-                var varName = child.get("name");                                    // Get the variable name
-                var varType = child.getChildren().get(0).get("name");               // Get the variable type
-                fields.add(new Symbol(new Type(varType, false), varName));   // Add it to the list (Arrays not supported yet)
+            var isVarTypeVarArgs = field.getChild(0).get("isVarArgs").equals("true");
+
+            if (isVarTypeVarArgs) {
+                throw new RuntimeException("Field cannot be a varargs");
             }
+
+            var varType = new Type(varTypeName, isVarTypeArray);                // Create a new type
+
+            fields.add(new Symbol(varType, varName));   // Add it to the list
         }
 
         return fields;
@@ -64,27 +70,27 @@ public class JmmSymbolTableBuilder {
 
     private static List<String> buildMethods(JmmNode classDecl) {
         List<String> methods = new ArrayList<>();
-
-        for (int i = 0; i < classDecl.getNumChildren(); i++) {
-            var child = classDecl.getJmmChild(i);                                   // Get the child
-
-            if (Kind.METHOD_DECL.check(child)) {
-                var methodName = child.get("name");                                 // Get the method name
-                methods.add(methodName);                                            // Add it to the list
+        for ( var method : classDecl.getChildren(METHOD_DECL)){
+            var methodName = method.get("name");
+            // see if it already exists
+            if (methods.contains(methodName)) {
+                throw new RuntimeException("More than one method with the same name");
             }
+            methods.add(methodName);
         }
-
         return methods;
     }
 
     private static Map<String, Type> buildReturnTypes(JmmNode classDecl) {
-        // TODO: Simple implementation that needs to be expanded
         Map<String, Type> map = new HashMap<>();
 
-        var methods = classDecl.getChildren(METHOD_DECL);
-
-        for (var method : methods) {
+        for (var method : classDecl.getChildren(METHOD_DECL)) {
             var name = method.get("name");
+
+            if (method.getJmmChild(0).get("isVarArgs").equals("true")) {
+                throw new RuntimeException("Return type cannot be a varargs");
+            }
+
             var returnType = new Type(method.getJmmChild(0).get("name"),
                     method.getJmmChild(0).get("isArray").equals("true"));
             map.put(name, returnType);
@@ -97,27 +103,30 @@ public class JmmSymbolTableBuilder {
     private static Map<String, List<Symbol>> buildParams(JmmNode classDecl) {
         Map<String, List<Symbol>> map = new HashMap<>();
 
-        for (int i = 0; i < classDecl.getNumChildren(); i++) {
-            var child = classDecl.getJmmChild(i);                                   // Get the child
+        for (var method : classDecl.getChildren(METHOD_DECL)) {
+            var methodName = method.get("name");
 
+            List<Symbol> paramsList = new ArrayList<>();                        // Create a list for the parameters
 
-            if (Kind.METHOD_DECL.check(child)) {
-                var methodName = child.get("name");                                 // Get the method name
-
-                List<Symbol> paramsList = new ArrayList<>();                        // Create a list for the parameters
-
-                for (int y = 0; y < child.getNumChildren(); y++) {
-                    var methodChild = child.getJmmChild(y);
-
-                    if (Kind.PARAM.check(methodChild)) {
-                        var paramName = methodChild.get("name");                              // Get the parameter name
-                        var paramType = methodChild.getChildren().get(0).get("name");         // Get the parameter type
-                        paramsList.add(new Symbol(new Type(paramType,
-                                methodChild.getChildren().get(0).get("isArray").equals("true")), paramName));
-                    }
-                }
-                map.put(methodName, paramsList);                                    // Add the list to the map
+            if (methodName.equals("main")){
+                var paramName = method.get("paramName");
+                paramsList.add(new Symbol(new Type("String", true), paramName));
+                map.put(methodName, paramsList);
+                continue;
             }
+
+            for (var param : method.getChildren(PARAM)) {
+                var paramName = param.get("name");                              // Get the parameter name
+                var paramTypeName = param.getJmmChild(0).get("name");
+                var isParamTypeArray = param.getJmmChild(0).get("isArray").equals("true");
+                var isParamTypeVarArgs = param.getJmmChild(0).get("isVarArgs").equals("true");
+
+                var type = new Type(paramTypeName, isParamTypeArray);
+                type.putObject("isVarArgs", isParamTypeVarArgs);
+
+                paramsList.add(new Symbol(type, paramName));
+            }
+            map.put(methodName, paramsList);                                    // Add the list to the map
         }
 
         return map;

@@ -40,7 +40,10 @@ public class  Launcher {
         JmmSemanticsResult semanticsResult = sema.semanticAnalysis(parserResult);
         TestUtils.noErrors(semanticsResult.getReports());
 
+        // print the symbol table
+        System.out.println(semanticsResult.getSymbolTable().toString());
 
+        /*
         // Optimization stage
         JmmOptimizationImpl ollirGen = new JmmOptimizationImpl();
         OllirResult ollirResult = ollirGen.toOllir(semanticsResult);
@@ -56,6 +59,8 @@ public class  Launcher {
 
         // Print Jasmin code
         //System.out.println(jasminResult.getJasminCode());
+
+         */
     }
 
 }

@@ -77,25 +77,19 @@ classDecl
     ;
 
 varDecl
-    : type name=ID SEMI
-    | type name=MAIN SEMI
+    : type name=ID SEMI #VariableDecl
+    | type name=MAIN SEMI #VariableDecl
     ;
 
-type locals[boolean isArray=false]
+type locals[boolean isArray=false, boolean isVarArgs=false]
     : name= INT LBRACK RBRACK {$isArray=true;}
-    | name= INT ELLIPSIS {$isArray=true;}
+    | name= INT ELLIPSIS {$isVarArgs=true;}
     | name= INT
     | name= BOOLEAN
     | name= STRING
     | name= ID
     | name= STRING
     ;
-
-mainParam locals[boolean isArray=false]
-    : mainParamType LBRACK RBRACK name=ID {$isArray=true;}
-    ;
-
-mainParamType : name = STRING;
 
 methodDecl locals[boolean isPublic=false]
     : (PUBLIC {$isPublic=true;})?
@@ -108,18 +102,19 @@ methodDecl locals[boolean isPublic=false]
         RCURLY
     | (PUBLIC {$isPublic=true;})?
         mainReturnType name=MAIN
-        LPAREN mainParam RPAREN
+        LPAREN STRING LBRACK RBRACK paramName=ID RPAREN
         LCURLY
             varDecl*
             stmt*
         RCURLY
     ;
 
-mainReturnType locals[boolean isArray=false]
+mainReturnType locals[boolean isArray=false, boolean isVarArgs=false]
     : STATIC name= VOID;
 
 param
-    : type name=ID
+    : type name=ID  #Parameter
+    | type name=MAIN #Parameter
     ;
 
 stmt
