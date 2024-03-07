@@ -57,7 +57,7 @@ public class JmmSymbolTableBuilder {
             var isVarTypeVarArgs = field.getChild(0).get("isVarArgs").equals("true");
 
             if (isVarTypeVarArgs) {
-                throw new RuntimeException("Field cannot be a varargs");
+                throw new RuntimeException("Field cannot be a varargs: " + varName);
             }
 
             var varType = new Type(varTypeName, isVarTypeArray);                // Create a new type
@@ -103,7 +103,11 @@ public class JmmSymbolTableBuilder {
     private static Map<String, List<Symbol>> buildParams(JmmNode classDecl) {
         Map<String, List<Symbol>> map = new HashMap<>();
 
+        boolean foundVarArgs = false;
         for (var method : classDecl.getChildren(METHOD_DECL)) {
+            if (foundVarArgs) {
+                throw new RuntimeException("Varargs must be the last parameter: " + method.get("name"));
+            }
             var methodName = method.get("name");
 
             List<Symbol> paramsList = new ArrayList<>();                        // Create a list for the parameters
@@ -120,6 +124,10 @@ public class JmmSymbolTableBuilder {
                 var paramTypeName = param.getJmmChild(0).get("name");
                 var isParamTypeArray = param.getJmmChild(0).get("isArray").equals("true");
                 var isParamTypeVarArgs = param.getJmmChild(0).get("isVarArgs").equals("true");
+
+                if (isParamTypeVarArgs) {
+                    foundVarArgs = true;
+                }
 
                 var type = new Type(paramTypeName, isParamTypeArray);
                 type.putObject("isVarArgs", isParamTypeVarArgs);

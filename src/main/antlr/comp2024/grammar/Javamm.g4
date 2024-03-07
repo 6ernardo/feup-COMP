@@ -91,6 +91,10 @@ type locals[boolean isArray=false, boolean isVarArgs=false]
     | name= STRING
     ;
 
+returnStmt
+    : RETURN expr SEMI
+    ;
+
 methodDecl locals[boolean isPublic=false]
     : (PUBLIC {$isPublic=true;})?
         type name=ID
@@ -98,7 +102,7 @@ methodDecl locals[boolean isPublic=false]
         LCURLY
             varDecl*
             stmt*
-            RETURN expr SEMI
+            returnStmt
         RCURLY
     | (PUBLIC {$isPublic=true;})?
         mainReturnType name=MAIN
