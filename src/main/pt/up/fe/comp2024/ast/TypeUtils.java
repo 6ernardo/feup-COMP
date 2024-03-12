@@ -1,8 +1,15 @@
 package pt.up.fe.comp2024.ast;
 
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
+
+import java.util.List;
+import java.util.Optional;
+
+import static pt.up.fe.comp2024.ast.Kind.METHOD_DECL;
+import static pt.up.fe.comp2024.ast.Kind.PARAM;
 
 public class TypeUtils {
 
@@ -35,6 +42,64 @@ public class TypeUtils {
     public static String getIntEllipsisTypeName() {
         return INT_ELLIPSIS_TYPE_NAME;
     }
+
+
+    public static Type getStmtType(JmmNode stmt, SymbolTable table) {
+        var kind = Kind.fromString(stmt.getKind());
+
+        Type type = switch (kind) {
+            case ASSIGN_STMT -> getAssignStmtType(stmt, table);
+            default -> throw new UnsupportedOperationException("Can't compute type for statement kind '" + kind + "'");
+        };
+
+        return type;
+    }
+
+    private static Type getVariableType(String variableName, SymbolTable table ,  Optional<JmmNode> currentMethod){
+        // check if there is an entry for the variable in the method
+        if (currentMethod.isPresent()) {
+            var currentMethodNode = currentMethod.get();
+            List<Symbol> methodsLocals = table.getLocalVariables(currentMethodNode.get("name"));
+            for (Symbol s : methodsLocals) {
+                if (s.getName().equals(variableName)) {
+                    return s.getType();
+                }
+            }
+            // check if the variable is a parameter
+            var params = table.getParameters(currentMethodNode.get("name"));
+            for (Symbol s : params) {
+                if (s.getName().equals(variableName)) {
+                    return s.getType();
+                }
+            }
+        }
+        // check if the variable is a field
+        var fields = table.getFields();
+        for (Symbol s : fields) {
+            if (s.getName().equals(variableName)) {
+                return s.getType();
+            }
+        }
+        throw new RuntimeException("Variable '" + variableName + "' not found in the symbol table");
+    }
+
+    private static Type getAssignStmtType(JmmNode assignStmt, SymbolTable table) {
+        // go through the table to find the type of the variable
+
+        var varName = assignStmt.get("name");
+
+        // get the type of the variable through the table
+
+        // check if we are in a method and throw an exception if we are not
+        var method = assignStmt.getAncestor(METHOD_DECL);
+        if (method.isEmpty()) {
+            throw new RuntimeException("Assign statement not inside a method");
+        }
+
+        return getVariableType(varName, table, method);
+    }
+
+
 
     /**
      * Gets the {@link Type} of an arbitrary expression.
@@ -72,8 +137,14 @@ public class TypeUtils {
 
 
     private static Type getVarExprType(JmmNode varRefExpr, SymbolTable table) {
-        // TODO: Simple implementation that needs to be expanded
-        return new Type(INT_TYPE_NAME, false);
+        // go through the table to find the type of the variable
+
+        var varName = varRefExpr.get("name");
+
+        // check if we are in a method and what method
+        var method = varRefExpr.getAncestor(METHOD_DECL);
+
+        return getVariableType(varName, table, method);
     }
 
 

@@ -9,6 +9,7 @@ import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import java.util.List;
 import java.util.Optional;
 
+import static pt.up.fe.comp2024.ast.Kind.MAIN_RETURN_TYPE;
 import static pt.up.fe.comp2024.ast.Kind.TYPE;
 
 public class OptUtils {
@@ -31,15 +32,28 @@ public class OptUtils {
     }
 
     public static String toOllirType(JmmNode typeNode) {
-
-        TYPE.checkOrThrow(typeNode);
+        if (!TYPE.check(typeNode) && !MAIN_RETURN_TYPE.check(typeNode)) {
+            throw new RuntimeException("Node '" + typeNode + "' is not a '" + TYPE.getNodeName() +
+                    "' or '" + MAIN_RETURN_TYPE.getNodeName() + "'");
+        }
 
         String typeName = typeNode.get("name");
+        boolean isArray = typeNode.hasAttribute("isArray") && typeNode.get("isArray").equals("true");
 
+        if (isArray) {
+            return ".array" + toOllirType(typeName);
+        }
         return toOllirType(typeName);
     }
 
     public static String toOllirType(Type type) {
+
+        boolean isArray = type.isArray();
+
+        if (isArray) {
+            return ".array" + toOllirType(type.getName());
+        }
+
         return toOllirType(type.getName());
     }
 
@@ -47,6 +61,9 @@ public class OptUtils {
 
         String type = "." + switch (typeName) {
             case "int" -> "i32";
+            case "boolean" -> "bool";
+            case "String" -> "string";
+            case "void" -> "void";
             default -> throw new NotImplementedException(typeName);
         };
 

@@ -88,7 +88,6 @@ type locals[boolean isArray=false, boolean isVarArgs=false]
     | name= BOOLEAN
     | name= STRING
     | name= ID
-    | name= STRING
     ;
 
 returnStmt
