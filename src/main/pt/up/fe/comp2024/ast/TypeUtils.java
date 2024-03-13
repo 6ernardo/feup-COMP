@@ -80,6 +80,15 @@ public class TypeUtils {
                 return s.getType();
             }
         }
+
+        // check if the variable is imported
+        var imports = table.getImports();
+        for (String s : imports) {
+            if (s.equals(variableName)) {
+                return new Type(variableName, false);
+            }
+        }
+
         throw new RuntimeException("Variable '" + variableName + "' not found in the symbol table");
     }
 

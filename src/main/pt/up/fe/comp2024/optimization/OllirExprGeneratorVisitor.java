@@ -6,6 +6,8 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
+import java.util.List;
+
 import static pt.up.fe.comp2024.ast.Kind.*;
 
 /**
@@ -28,10 +30,37 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(VAR_REF_EXPR, this::visitVarRef);
         addVisit(BINARY_EXPR, this::visitBinExpr);
         addVisit(INTEGER_LITERAL, this::visitInteger);
+        addVisit(METHOD_CALL_EXPR, this::visitMethodCall);
 
         setDefaultVisit(this::defaultVisit);
     }
 
+
+    private OllirExprResult visitMethodCall(JmmNode node , Void unused){
+
+        StringBuilder computation = new StringBuilder();
+
+        StringBuilder paramCodes = new StringBuilder();
+
+        String nameOfTheFunction = node.get("name");
+        List<JmmNode> argumentsExpr = node.getChildren();
+
+        JmmNode beforeTheDotExpr = argumentsExpr.remove(0);
+
+        for (JmmNode argument : argumentsExpr){
+            OllirExprResult argumentResult = visit(argument);
+            computation.append(argumentResult.getComputation());
+            paramCodes.append(", " + argumentResult.getCode());
+        }
+
+        OllirExprResult beforeTheDotResult = visit(beforeTheDotExpr);
+
+        computation.append(beforeTheDotResult.getComputation());
+
+        computation.append( "invokestatic(" + beforeTheDotResult.getCode() + ", \"" + nameOfTheFunction + "\"" +paramCodes + ").V");
+
+        return new OllirExprResult("", computation.toString());
+    }
 
     private OllirExprResult visitInteger(JmmNode node, Void unused) {
         var intType = new Type(TypeUtils.getIntTypeName(), false);
@@ -68,10 +97,25 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         return new OllirExprResult(code, computation);
     }
 
+    private boolean isImport(JmmNode node){
+        // check if the variable is imported
+        String variableName = node.get("name");
+        var imports = table.getImports();
+        for (String s : imports) {
+            if (s.equals(variableName)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     private OllirExprResult visitVarRef(JmmNode node, Void unused) {
-
         var id = node.get("name");
+
+        if (isImport(node)){
+            return new OllirExprResult(id);
+        }
+
         Type type = TypeUtils.getExprType(node, table);
         String ollirType = OptUtils.toOllirType(type);
 

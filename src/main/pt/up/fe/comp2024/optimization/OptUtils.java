@@ -63,8 +63,8 @@ public class OptUtils {
             case "int" -> "i32";
             case "boolean" -> "bool";
             case "String" -> "string";
-            case "void" -> "void";
-            default -> throw new NotImplementedException(typeName);
+            case "void" -> "V";
+            default -> typeName;
         };
 
         return type;

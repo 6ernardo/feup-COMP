@@ -1,21 +1,18 @@
+import io;
 
-import Master;
-class a{
-    public int anyotherfunction(int som) {
-        int res;
-        res = 1;
-        return res;
+class CompileMethodInvocation {
+
+    public static void main(String[] args) {
+
     }
 
-    static void main(String[] any){
-        // testing if the function is being parsed into the symbol table correctly
-        int aorwhat;
-        aorwhat = 0;
-    }
+    public int foo() {
+        int a;
 
-    int foo(int anInt, int[] anArray, boolean aBool, String aString) {
-        int res;
-        res = 1;
-        return res;
+        a = 1;
+
+        io.println(a);
+
+        return 0;
     }
 }

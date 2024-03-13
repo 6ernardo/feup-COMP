@@ -60,8 +60,9 @@ public class OllirTest {
 
         var result = TestUtils.optimize(SpecsIo.getResource(resource));
         var testName = new File(resource).getName();
-        System.out.println(testName + ":\n" + result.getOllirCode());
 
+
+        System.out.println(testName + ":\n" + result.getOllirCode());
         if (ollirTester != null) {
             ollirTester.accept(result.getOllirClass());
         }
@@ -138,6 +139,9 @@ public class OllirTest {
     }
 
     public void compileMethodInvocation(ClassUnit classUnit) {
+        // print the code
+        System.out.println(classUnit.toString());
+
         // Test name of the class
         assertEquals("Class name not what was expected", "CompileMethodInvocation", classUnit.getClassName());
 
@@ -161,6 +165,7 @@ public class OllirTest {
     }
 
     public void compileAssignment(ClassUnit classUnit) {
+
         // Test name of the class
         assertEquals("Class name not what was expected", "CompileAssignment", classUnit.getClassName());
 
