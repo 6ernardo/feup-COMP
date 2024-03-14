@@ -139,8 +139,6 @@ public class OllirTest {
     }
 
     public void compileMethodInvocation(ClassUnit classUnit) {
-        // print the code
-        System.out.println(classUnit.toString());
 
         // Test name of the class
         assertEquals("Class name not what was expected", "CompileMethodInvocation", classUnit.getClassName());
@@ -187,4 +185,7 @@ public class OllirTest {
         assertEquals("Assignment does not have the expected type", ElementType.INT32,
                 assignInst.get().getTypeOfAssign().getTypeOfElement());
     }
+
+
+    // Adding Tests
 }

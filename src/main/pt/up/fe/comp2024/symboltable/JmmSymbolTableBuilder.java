@@ -40,6 +40,11 @@ public class JmmSymbolTableBuilder {
             if (!Kind.IMPORT_DECL.check(child)) break;  // If it's not an import declaration, break
 
             var impName = child.get("name");            // Get the import name
+
+            // see if there is already an import with the same name
+            if (imports.contains(impName)) {
+                throw new RuntimeException("More than one import with the same name");
+            }
             imports.add(impName);                       // Add it to the list
 
         }
@@ -50,7 +55,11 @@ public class JmmSymbolTableBuilder {
         List<Symbol> fields = new ArrayList<>();
 
         for (var field : classDecl.getChildren(VAR_DECL)) {
-            var varName = field.get("name");                                    // Get the variable name
+            var varName = field.get("name");// Get the variable name
+            // see if it already exists
+            if (fields.stream().anyMatch(symbol -> symbol.getName().equals(varName))) {
+                throw new RuntimeException("Field with the same name already exists: " + varName);
+            }
             var varTypeName = field.getChild(0).get("name");               // Get the variable type
             var isVarTypeArray = field.getChild(0).get("isArray").equals("true");
 
@@ -110,17 +119,23 @@ public class JmmSymbolTableBuilder {
             }
             var methodName = method.get("name");
 
-            List<Symbol> paramsList = new ArrayList<>();                        // Create a list for the parameters
-
             if (methodName.equals("main")){
                 var paramName = method.get("paramName");
+                List<Symbol> paramsList = new ArrayList<>();
                 paramsList.add(new Symbol(new Type("String", true), paramName));
                 map.put(methodName, paramsList);
                 continue;
             }
 
+            List<Symbol> paramsList = new ArrayList<>();
+
             for (var param : method.getChildren(PARAM)) {
                 var paramName = param.get("name");                              // Get the parameter name
+
+                if (paramsList.stream().anyMatch(symbol -> symbol.getName().equals(paramName))) {
+                    throw new RuntimeException("Parameter with the same name already exists: " + paramName);
+                }
+
                 var paramTypeName = param.getJmmChild(0).get("name");
                 var isParamTypeArray = param.getJmmChild(0).get("isArray").equals("true");
                 var isParamTypeVarArgs = param.getJmmChild(0).get("isVarArgs").equals("true");
@@ -134,7 +149,7 @@ public class JmmSymbolTableBuilder {
 
                 paramsList.add(new Symbol(type, paramName));
             }
-            map.put(methodName, paramsList);                                    // Add the list to the map
+            map.put(methodName, paramsList);
         }
 
         return map;
