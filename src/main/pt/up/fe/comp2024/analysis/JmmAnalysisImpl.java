@@ -7,6 +7,8 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
+import pt.up.fe.comp2024.analysis.passes.InvalidInitialization;
+import pt.up.fe.comp2024.analysis.passes.InvalidOperation;
 import pt.up.fe.comp2024.analysis.passes.UndeclaredVariable;
 import pt.up.fe.comp2024.symboltable.JmmSymbolTableBuilder;
 
@@ -18,7 +20,7 @@ public class JmmAnalysisImpl implements JmmAnalysis {
     private final List<AnalysisPass> analysisPasses;
     public JmmAnalysisImpl() {
 
-        this.analysisPasses = List.of(new UndeclaredVariable());
+        this.analysisPasses = List.of(new UndeclaredVariable(), new InvalidOperation(), new InvalidInitialization());
 
     }
     @Override

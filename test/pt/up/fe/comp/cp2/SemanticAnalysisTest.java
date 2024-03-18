@@ -39,6 +39,12 @@ public class SemanticAnalysisTest {
     }
 
     @Test
+    public void IntTimesInt() {
+        var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/IntTimesInt.jmm"));
+        TestUtils.noErrors(result);
+    }
+
+    @Test
     public void arrayPlusInt() {
         var result = TestUtils.analyse(SpecsIo.getResource("pt/up/fe/comp/cp2/semanticanalysis/ArrayPlusInt.jmm"));
         TestUtils.mustFail(result);
