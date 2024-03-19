@@ -29,32 +29,22 @@ public class InvalidOperation extends AnalysisVisitor {
         return null;
     }
 
-    private boolean isInteger(JmmNode varRefExpr, SymbolTable table) {
-        // Find the variable in the local variables of the current method
-        Type varType = TypeUtils.getExprType(varRefExpr, table);
-
-        // Check if the variable is an integer
-        if (!varType.getName().equals("int")) {
-            return false;
-        }
-
-        // Check if the variable is an array
-        if (varType.isArray()) {
-            return false;
-        }
-
-        return true;
-    }
-
     private Void visitBinaryExpr(JmmNode binaryExpr, SymbolTable table) {
+        // we just need to check if both sides have the same type
+
         SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
 
         // Check if the binary operation is valid
         var left = binaryExpr.getChildren().get(0);
         var right = binaryExpr.getChildren().get(1);
 
-        // If the left and right operand is an integer literal or int variable
-        if (isInteger(left, table) && isInteger(right,table)){
+        Type leftType = TypeUtils.getExprType(left, table);
+        Type rightType = TypeUtils.getExprType(right, table);
+
+        // Check if the type of the operands is valid
+        if (leftType.equals(rightType)) {
+            // add information to the binaryExpr saying the type
+            binaryExpr.putObject("type", leftType);
             return null;
         }
 

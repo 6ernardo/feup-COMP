@@ -122,30 +122,30 @@ param
     ;
 
 stmt
-    : LCURLY stmt* RCURLY #BlockStmt //
-    | IF LPAREN expr RPAREN stmt ELSE stmt #IfStmt //
-    | WHILE LPAREN expr RPAREN stmt #WhileStmt //
-    | expr SEMI #ExprStmt //
-    | name=ID EQUALS expr SEMI #AssignStmt //
-    | name=ID LBRACK expr RBRACK EQUALS expr SEMI #ArrayAssignStmt //
+    : LCURLY stmt* RCURLY #BlockStmt
+    | IF LPAREN expr RPAREN stmt ELSE stmt #IfStmt
+    | WHILE LPAREN expr RPAREN stmt #WhileStmt
+    | expr SEMI #ExprStmt
+    | name=ID EQUALS expr SEMI #AssignStmt
+    | name=ID LBRACK expr RBRACK EQUALS expr SEMI #ArrayAssignStmt
     ;
 
 expr
-    : LPAREN expr RPAREN #ParenExpr //
-    | op=NOT expr #UnaryExpr //
-    | expr op = (MUL | DIV) expr #BinaryExpr //
-    | expr op = (ADD | SUB) expr #BinaryExpr //
-    | expr op =LESS expr #BinaryExpr //
-    | expr op=AND expr #BinaryExpr //
-    | expr LBRACK expr RBRACK #ArrayAccessExpr //
-    | expr PERIOD LENGTH #ArrayLengthExpr //
-    | expr PERIOD name=ID LPAREN (expr (COMMA expr)*)? RPAREN #MethodCallExpr //
-    | NEW INT LBRACK expr RBRACK #NewIntArrayExpr //
-    | NEW name=ID LPAREN RPAREN #NewObjectExpr //
-    | LBRACK (expr (COMMA expr)*)? RBRACK #ArrayCreationExpr //
-    | value=INTEGER #IntegerLiteral //
-    | TRUE #TrueLiteral //
-    | FALSE #FalseLiteral //
-    | name=ID #VarRefExpr //
-    | THIS #ThisLiteral //
+    : LPAREN expr RPAREN #ParenExpr
+    | op=NOT expr #UnaryExpr
+    | expr op = (MUL | DIV) expr #BinaryExpr
+    | expr op = (ADD | SUB) expr #BinaryExpr
+    | expr op =LESS expr #BinaryExpr
+    | expr op=AND expr #BinaryExpr
+    | expr LBRACK expr RBRACK #ArrayAccessExpr
+    | expr PERIOD LENGTH #ArrayLengthExpr
+    | expr PERIOD name=ID LPAREN (expr (COMMA expr)*)? RPAREN #MethodCallExpr
+    | NEW INT LBRACK expr RBRACK #NewIntArrayExpr
+    | NEW name=ID LPAREN RPAREN #NewObjectExpr
+    | LBRACK (expr (COMMA expr)*)? RBRACK #ArrayCreationExpr
+    | value=INTEGER #IntegerLiteral
+    | TRUE #TrueLiteral
+    | FALSE #FalseLiteral
+    | name=ID #VarRefExpr
+    | THIS #ThisLiteral
     ;
