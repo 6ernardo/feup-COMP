@@ -1,13 +1,14 @@
 package pt.up.fe.comp2024.analysis.passes;
 
-import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
+import pt.up.fe.comp2024.ast.TypeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
 
 /**
@@ -30,26 +31,15 @@ public class InvalidOperation extends AnalysisVisitor {
 
     private boolean isInteger(JmmNode varRefExpr, SymbolTable table) {
         // Find the variable in the local variables of the current method
-        Symbol localVariable = null;
-        for (Symbol symbol : table.getLocalVariables(currentMethod)) {
-            if (symbol.getName().equals(varRefExpr.get("name")) ) {
-                localVariable = symbol;
-                break;
-            }
-        }
-
-        // If the variable is not found, it is not a local variable
-        if (localVariable == null) {
-            return false;
-        }
+        Type varType = TypeUtils.getExprType(varRefExpr, table);
 
         // Check if the variable is an integer
-        if (!localVariable.getType().getName().equals("int")) {
+        if (!varType.getName().equals("int")) {
             return false;
         }
 
         // Check if the variable is an array
-        if (localVariable.getType().isArray()) {
+        if (varType.isArray()) {
             return false;
         }
 
@@ -63,12 +53,9 @@ public class InvalidOperation extends AnalysisVisitor {
         var left = binaryExpr.getChildren().get(0);
         var right = binaryExpr.getChildren().get(1);
 
-        // If the left operand is an integer literal or int variable
-        if (isInteger(left, table)) {
-            // If the right operand is an integer literal or int variable
-            if (isInteger(right, table)) {
-                return null;
-            }
+        // If the left and right operand is an integer literal or int variable
+        if (isInteger(left, table) && isInteger(right,table)){
+            return null;
         }
 
         // Create error report

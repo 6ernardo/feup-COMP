@@ -14,9 +14,6 @@ import static pt.up.fe.comp2024.ast.Kind.PARAM;
 public class TypeUtils {
 
     private static final String INT_TYPE_NAME = "int";
-
-
-    /// Added These
     private static final String BOOLEAN_TYPE_NAME = "boolean";
     private static final String STRING_TYPE_NAME = "String";
     private static final String VOID_TYPE_NAME = "void";
@@ -92,7 +89,7 @@ public class TypeUtils {
         throw new RuntimeException("Variable '" + variableName + "' not found in the symbol table");
     }
 
-    private static Type getAssignStmtType(JmmNode assignStmt, SymbolTable table) {
+    public static Type getAssignStmtType(JmmNode assignStmt, SymbolTable table) {
         // go through the table to find the type of the variable
 
         var varName = assignStmt.get("name");
@@ -107,8 +104,6 @@ public class TypeUtils {
 
         return getVariableType(varName, table, method);
     }
-
-
 
     /**
      * Gets the {@link Type} of an arbitrary expression.
@@ -133,21 +128,16 @@ public class TypeUtils {
     }
 
     private static Type getBinExprType(JmmNode binaryExpr) {
-        // TODO: Simple implementation that needs to be expanded
-
         String operator = binaryExpr.get("op");
 
         return switch (operator) {
-            case "+", "*" -> new Type(INT_TYPE_NAME, false);
-            default ->
-                    throw new RuntimeException("Unknown operator '" + operator + "' of expression '" + binaryExpr + "'");
+            case "+", "-", "*", "/" -> new Type(INT_TYPE_NAME, false);
+            case "<", "&&" -> new Type(BOOLEAN_TYPE_NAME, false);
+            default -> throw new RuntimeException("Unknown operator '" + operator + "' of expression '" + binaryExpr + "'");
         };
     }
 
-
-    private static Type getVarExprType(JmmNode varRefExpr, SymbolTable table) {
-        // go through the table to find the type of the variable
-
+    public static Type getVarExprType(JmmNode varRefExpr, SymbolTable table) {
         var varName = varRefExpr.get("name");
 
         // check if we are in a method and what method
@@ -155,7 +145,6 @@ public class TypeUtils {
 
         return getVariableType(varName, table, method);
     }
-
 
     /**
      * @param sourceType

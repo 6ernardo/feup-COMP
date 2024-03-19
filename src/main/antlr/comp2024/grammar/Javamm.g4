@@ -144,8 +144,8 @@ expr
     | NEW name=ID LPAREN RPAREN #NewObjectExpr //
     | LBRACK (expr (COMMA expr)*)? RBRACK #ArrayCreationExpr //
     | value=INTEGER #IntegerLiteral //
-    | TRUE #TrueExpr //
-    | FALSE #FalseExpr //
+    | TRUE #TrueLiteral //
+    | FALSE #FalseLiteral //
     | name=ID #VarRefExpr //
-    | THIS #ThisExpr //
+    | THIS #ThisLiteral //
     ;

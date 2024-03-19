@@ -18,12 +18,20 @@ public enum Kind {
     BINARY_EXPR,
     INTEGER_LITERAL,
     VAR_REF_EXPR,
-
-    BOOL_LITERAL, // Added this kind
+    TRUE_LITERAL,
+    FALSE_LITERAL,
     STRING_LITERAL, // Added this kind
     IMPORT_DECL, // Added this kind
     METHOD_CALL_EXPR,
     EXPR_STMT,
+    PAREN_EXPR,
+    UNARY_EXPR,
+    ARRAY_ACCESS_EXPR,
+    ARRAY_LENGTH_EXPR,
+    NEW_INT_ARRAY_EXPR,
+    NEW_OBJECT_EXPR,
+    ARRAY_CREATION_EXPR,
+    THIS_LITERAL,
     MAIN_RETURN_TYPE; // Added this kind
     private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, RETURN_STMT);
     private static final Set<Kind> EXPRESSIONS = Set.of(BINARY_EXPR, INTEGER_LITERAL, VAR_REF_EXPR);
