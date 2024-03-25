@@ -140,8 +140,8 @@ expr
     | expr LBRACK expr RBRACK #ArrayAccessExpr
     | expr PERIOD LENGTH #ArrayLengthExpr
     | expr PERIOD name=ID LPAREN (expr (COMMA expr)*)? RPAREN #MethodCallExpr
-    | NEW INT LBRACK expr RBRACK #NewIntArrayExpr
-    | NEW name=ID LPAREN RPAREN #NewObjectExpr
+    | NEW name=INT LBRACK expr RBRACK #NewExpr
+    | NEW name=ID LPAREN RPAREN #NewExpr
     | LBRACK (expr (COMMA expr)*)? RBRACK #ArrayCreationExpr
     | value=INTEGER #IntegerLiteral
     | TRUE #TrueLiteral

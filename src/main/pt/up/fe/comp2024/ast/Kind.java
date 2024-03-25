@@ -28,8 +28,7 @@ public enum Kind {
     UNARY_EXPR,
     ARRAY_ACCESS_EXPR,
     ARRAY_LENGTH_EXPR,
-    NEW_INT_ARRAY_EXPR,
-    NEW_OBJECT_EXPR,
+    NEW_EXPR,
     ARRAY_CREATION_EXPR,
     THIS_LITERAL,
     MAIN_RETURN_TYPE; // Added this kind

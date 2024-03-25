@@ -120,11 +120,41 @@ public class TypeUtils {
         Type type = switch (kind) {
             case BINARY_EXPR -> getBinExprType(expr);
             case VAR_REF_EXPR -> getVarExprType(expr, table);
-            case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
+            case INTEGER_LITERAL, ARRAY_LENGTH_EXPR -> new Type(INT_TYPE_NAME, false);
+            case PAREN_EXPR -> getExprType(expr.getChild(0), table);
+            case UNARY_EXPR, TRUE_LITERAL, FALSE_LITERAL -> new Type(BOOLEAN_TYPE_NAME, false);
+            case ARRAY_ACCESS_EXPR -> getArrayType(expr, table);
+            case METHOD_CALL_EXPR -> getMethodReturnType(expr, table);
+            case NEW_EXPR -> new Type(expr.get("name"), true);
+            case ARRAY_CREATION_EXPR -> getArrayInitType(expr, table);
+            case THIS_LITERAL -> getThisType(expr, table);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
 
         return type;
+    }
+
+    private static Type getThisType(JmmNode thisLiteral, SymbolTable table) {
+        // get the class name from the symbol table
+        return new Type(table.getClassName(), false);
+    }
+
+    private static Type getArrayInitType(JmmNode arrayCreationExpr, SymbolTable table) {
+        var type = getExprType(arrayCreationExpr.getChild(0), table);
+        return new Type(type.getName(), true);
+    }
+
+    private static Type getArrayType(JmmNode arrayAccessExpr, SymbolTable table) {
+        var type = getExprType(arrayAccessExpr.getChild(0), table);
+        if (!type.isArray()) {
+            throw new RuntimeException("Trying to access an array element from a non-array type");
+        }
+        return new Type(type.getName(), false);
+    }
+
+    private static Type getMethodReturnType(JmmNode methodCallExpr, SymbolTable table) {
+        var methodName = methodCallExpr.get("name");
+        return table.getReturnType(methodName);
     }
 
     private static Type getBinExprType(JmmNode binaryExpr) {
