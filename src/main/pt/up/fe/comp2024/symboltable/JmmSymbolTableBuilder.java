@@ -34,7 +34,7 @@ public class JmmSymbolTableBuilder {
     private static List<String> buildImports(JmmNode root){
         List<String> imports = new ArrayList<>();
 
-        for (var child : root.getChildren(Kind.IMPORT_DECL)){
+        for (var child : root.getChildren(Kind.IMPORT_DECL)) {
 
             // get last import name
             var impNames = child.getChildren();
@@ -46,9 +46,10 @@ public class JmmSymbolTableBuilder {
             if (imports.contains(lastName)) {
                 throw new RuntimeException("More than one import with the same name: " + lastName);
             }
-            imports.add(lastName);                     // Add it to the list
 
+            imports.add(lastName);
         }
+
         return imports;
     }
 
@@ -56,23 +57,19 @@ public class JmmSymbolTableBuilder {
         List<Symbol> fields = new ArrayList<>();
 
         for (var field : classDecl.getChildren(VAR_DECL)) {
-            var varName = field.get("name");// Get the variable name
-            // see if it already exists
+            var varName = field.get("name");
+
             if (fields.stream().anyMatch(symbol -> symbol.getName().equals(varName))) {
                 throw new RuntimeException("Field with the same name already exists: " + varName);
             }
-            var varTypeName = field.getChild(0).get("name");               // Get the variable type
-            var isVarTypeArray = field.getChild(0).get("isArray").equals("true");
 
-            var isVarTypeVarArgs = field.getChild(0).get("isVarArgs").equals("true");
-
-            if (isVarTypeVarArgs) {
+            if (field.getChild(0).get("isVarArgs").equals("true")) {
                 throw new RuntimeException("Field cannot be a varargs: " + varName);
             }
 
-            var varType = new Type(varTypeName, isVarTypeArray);                // Create a new type
-
-            fields.add(new Symbol(varType, varName));   // Add it to the list
+            var varType = new Type(field.getChild(0).get("name"),
+                    field.getChild(0).get("isArray").equals("true"));
+            fields.add(new Symbol(varType, varName));
         }
 
         return fields;
@@ -82,7 +79,7 @@ public class JmmSymbolTableBuilder {
         List<String> methods = new ArrayList<>();
         for ( var method : classDecl.getChildren(METHOD_DECL)){
             var methodName = method.get("name");
-            // see if it already exists
+
             if (methods.contains(methodName)) {
                 throw new RuntimeException("More than one method with the same name");
             }

@@ -18,7 +18,7 @@ public class JmmAnalysisImpl implements JmmAnalysis {
     private final List<AnalysisPass> analysisPasses;
     public JmmAnalysisImpl() {
 
-        this.analysisPasses = List.of(new UndeclaredVariable(), new InvalidOperation(), new InvalidInitialization(),
+    this.analysisPasses = List.of(new UndeclaredVariable(), new InvalidOperation(), new InvalidAssignment(),
                 new InvalidArrayAccess(), new InvalidConditionExpr());
 
     }
@@ -26,6 +26,8 @@ public class JmmAnalysisImpl implements JmmAnalysis {
     public JmmSemanticsResult semanticAnalysis(JmmParserResult parserResult) {
 
         JmmNode rootNode = parserResult.getRootNode();
+
+        System.out.println(parserResult.getRootNode().toTree()); // TODO
 
         SymbolTable table = JmmSymbolTableBuilder.build(rootNode);
 

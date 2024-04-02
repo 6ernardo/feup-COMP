@@ -1,7 +1,5 @@
 package pt.up.fe.comp2024.analysis.passes;
 
-
-import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
@@ -18,7 +16,7 @@ import pt.up.fe.specs.util.SpecsCheck;
  *
  */
 
-public class InvalidInitialization extends AnalysisVisitor {
+public class InvalidAssignment extends AnalysisVisitor {
     private String currentMethod;
 
     public void buildVisitor() {
@@ -31,15 +29,23 @@ public class InvalidInitialization extends AnalysisVisitor {
         return null;
     }
 
-    private Void visitAssignStmt(JmmNode AssignStmt, SymbolTable table) {
+    private Void visitAssignStmt(JmmNode assignStmt, SymbolTable table) {
         SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
+
+        Type assignType = TypeUtils.getAssignStmtType(assignStmt, table);
+        Type childType = TypeUtils.getExprType(assignStmt.getChildren().get(0), table);
+
+        if (assignType.equals(childType)) {
+            return null;
+        }
 
         // Create error report
         String message = "Invalid initialization of variable";
+
         addReport(Report.newError(
                 Stage.SEMANTIC,
-                NodeUtils.getLine(AssignStmt),
-                NodeUtils.getColumn(AssignStmt),
+                NodeUtils.getLine(assignStmt),
+                NodeUtils.getColumn(assignStmt),
                 message,
                 null)
         );

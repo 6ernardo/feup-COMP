@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static pt.up.fe.comp2024.ast.Kind.METHOD_DECL;
-import static pt.up.fe.comp2024.ast.Kind.PARAM;
 
 public class TypeUtils {
 
@@ -25,8 +24,10 @@ public class TypeUtils {
         return INT_TYPE_NAME;
     }
 
-    // and these
-    public static String getBooleanTypeName() {return BOOLEAN_TYPE_NAME;}
+    public static String getBooleanTypeName() {
+        return BOOLEAN_TYPE_NAME;
+    }
+
     public static String getStringTypeName() {
         return STRING_TYPE_NAME;
     }
@@ -39,7 +40,6 @@ public class TypeUtils {
     public static String getIntEllipsisTypeName() {
         return INT_ELLIPSIS_TYPE_NAME;
     }
-
 
     public static Type getStmtType(JmmNode stmt, SymbolTable table) {
         var kind = Kind.fromString(stmt.getKind());
@@ -91,7 +91,6 @@ public class TypeUtils {
 
     public static Type getAssignStmtType(JmmNode assignStmt, SymbolTable table) {
         // go through the table to find the type of the variable
-
         var varName = assignStmt.get("name");
 
         // get the type of the variable through the table
