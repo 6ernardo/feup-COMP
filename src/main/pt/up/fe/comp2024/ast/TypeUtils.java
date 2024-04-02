@@ -124,7 +124,7 @@ public class TypeUtils {
             case UNARY_EXPR, TRUE_LITERAL, FALSE_LITERAL -> new Type(BOOLEAN_TYPE_NAME, false);
             case ARRAY_ACCESS_EXPR -> getArrayElementType(expr, table);
             case METHOD_CALL_EXPR -> getMethodReturnType(expr, table);
-            case NEW_EXPR -> new Type(expr.get("name"), true);
+            case NEW_EXPR -> new Type(expr.get("name"), false);
             case ARRAY_CREATION_EXPR -> getArrayInitType(expr, table);
             case THIS_LITERAL -> getThisType(expr, table);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");

@@ -40,8 +40,7 @@ public class InvalidAssignment extends AnalysisVisitor {
         }
 
         // Create error report
-        String message = "Invalid initialization of variable";
-
+        String message = "Invalid assignment of variable";
         addReport(Report.newError(
                 Stage.SEMANTIC,
                 NodeUtils.getLine(assignStmt),
