@@ -22,6 +22,7 @@ public class InvalidOperation extends AnalysisVisitor {
     public void buildVisitor() {
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
         addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
+        addVisit(Kind.UNARY_EXPR, this::visitUnaryExpr);
     }
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
@@ -37,23 +38,56 @@ public class InvalidOperation extends AnalysisVisitor {
         // Check if the binary operation is valid
         var left = binaryExpr.getChildren().get(0);
         var right = binaryExpr.getChildren().get(1);
+        var operator = binaryExpr.get("op");
 
         Type leftType = TypeUtils.getExprType(left, table);
         Type rightType = TypeUtils.getExprType(right, table);
 
-        // Check if the type of the operands is valid
-        if (leftType.equals(rightType)) {
-            // add information to the binaryExpr saying the type
-            binaryExpr.putObject("type", leftType);
+        Type operatorType = TypeUtils.getOperatorType(operator);
+
+        // check if the type of operation is valid
+        if ( operatorType.equals(leftType) && operatorType.equals(rightType) ) {
             return null;
         }
 
         // Create error report
-        var message = String.format("Invalid operation between '%s' and '%s'.", left.getKind(), right.getKind());
+        var message = String.format("Operation '%s' is not valid between '%s' and '%s'.", operator, leftType, rightType);
         addReport(Report.newError(
                 Stage.SEMANTIC,
                 NodeUtils.getLine(binaryExpr),
                 NodeUtils.getColumn(binaryExpr),
+                message,
+                null)
+        );
+
+        return null;
+    }
+
+    public Void visitUnaryExpr(JmmNode unaryExpr, SymbolTable table) {
+        // we just need to check if the type of the unary operation is valid
+
+        SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
+
+        // Check if the unary operation is valid
+        var operand = unaryExpr.getChildren().get(0);
+        var operator = unaryExpr.get("op");
+
+        Type operandType = TypeUtils.getExprType(operand, table);
+        Type operatorType = TypeUtils.getOperatorType(operator);
+
+        // check if the type of operation is valid
+        if ( operatorType.equals(operandType) ) {
+            // add the type to the unary expression
+            unaryExpr.putObject("type", operatorType.getName());
+            return null;
+        }
+
+        // Create error report
+        var message = String.format("Operation '%s' is not valid for '%s'.", operator, operandType);
+        addReport(Report.newError(
+                Stage.SEMANTIC,
+                NodeUtils.getLine(unaryExpr),
+                NodeUtils.getColumn(unaryExpr),
                 message,
                 null)
         );

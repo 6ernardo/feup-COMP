@@ -65,9 +65,10 @@ program
     : importDecl* classDecl EOF
     ;
 
+importName : name=ID;
 
 importDecl
-    : IMPORT (ID PERIOD)* name=ID SEMI;
+    : IMPORT (importName PERIOD)* importName SEMI;
 
 classDecl
     : CLASS name=ID (EXTENDS superclass=ID)?
@@ -105,7 +106,7 @@ methodDecl locals[boolean isPublic=false]
             returnStmt
         RCURLY
     | (PUBLIC {$isPublic=true;})?
-        mainReturnType name=MAIN
+        STATIC mainReturnType name=MAIN
         LPAREN STRING LBRACK RBRACK paramName=ID RPAREN
         LCURLY
             varDecl*
@@ -114,7 +115,7 @@ methodDecl locals[boolean isPublic=false]
     ;
 
 mainReturnType locals[boolean isArray=false, boolean isVarArgs=false]
-    : STATIC name= VOID;
+    : name= VOID;
 
 param
     : type name=ID  #Parameter

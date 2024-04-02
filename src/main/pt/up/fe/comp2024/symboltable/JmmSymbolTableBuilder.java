@@ -34,18 +34,19 @@ public class JmmSymbolTableBuilder {
     private static List<String> buildImports(JmmNode root){
         List<String> imports = new ArrayList<>();
 
-        for (int i = 0; i < root.getNumChildren(); i++) {
-            var child = root.getJmmChild(i);            // Get the child
+        for (var child : root.getChildren(Kind.IMPORT_DECL)){
 
-            if (!Kind.IMPORT_DECL.check(child)) break;  // If it's not an import declaration, break
+            // get last import name
+            var impNames = child.getChildren();
 
-            var impName = child.get("name");            // Get the import name
+            var lastNameNode = impNames.get(impNames.size() - 1);
 
+            var lastName = lastNameNode.get("name");
             // see if there is already an import with the same name
-            if (imports.contains(impName)) {
-                throw new RuntimeException("More than one import with the same name");
+            if (imports.contains(lastName)) {
+                throw new RuntimeException("More than one import with the same name: " + lastName);
             }
-            imports.add(impName);                       // Add it to the list
+            imports.add(lastName);                     // Add it to the list
 
         }
         return imports;
@@ -112,11 +113,7 @@ public class JmmSymbolTableBuilder {
     private static Map<String, List<Symbol>> buildParams(JmmNode classDecl) {
         Map<String, List<Symbol>> map = new HashMap<>();
 
-        boolean foundVarArgs = false;
         for (var method : classDecl.getChildren(METHOD_DECL)) {
-            if (foundVarArgs) {
-                throw new RuntimeException("Varargs must be the last parameter: " + method.get("name"));
-            }
             var methodName = method.get("name");
 
             if (methodName.equals("main")){
@@ -140,9 +137,6 @@ public class JmmSymbolTableBuilder {
                 var isParamTypeArray = param.getJmmChild(0).get("isArray").equals("true");
                 var isParamTypeVarArgs = param.getJmmChild(0).get("isVarArgs").equals("true");
 
-                if (isParamTypeVarArgs) {
-                    foundVarArgs = true;
-                }
 
                 var type = new Type(paramTypeName, isParamTypeArray);
                 type.putObject("isVarArgs", isParamTypeVarArgs);

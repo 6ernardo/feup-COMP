@@ -123,7 +123,7 @@ public class TypeUtils {
             case INTEGER_LITERAL, ARRAY_LENGTH_EXPR -> new Type(INT_TYPE_NAME, false);
             case PAREN_EXPR -> getExprType(expr.getChild(0), table);
             case UNARY_EXPR, TRUE_LITERAL, FALSE_LITERAL -> new Type(BOOLEAN_TYPE_NAME, false);
-            case ARRAY_ACCESS_EXPR -> getArrayType(expr, table);
+            case ARRAY_ACCESS_EXPR -> getArrayElementType(expr, table);
             case METHOD_CALL_EXPR -> getMethodReturnType(expr, table);
             case NEW_EXPR -> new Type(expr.get("name"), true);
             case ARRAY_CREATION_EXPR -> getArrayInitType(expr, table);
@@ -144,7 +144,7 @@ public class TypeUtils {
         return new Type(type.getName(), true);
     }
 
-    private static Type getArrayType(JmmNode arrayAccessExpr, SymbolTable table) {
+    private static Type getArrayElementType(JmmNode arrayAccessExpr, SymbolTable table) {
         var type = getExprType(arrayAccessExpr.getChild(0), table);
         if (!type.isArray()) {
             throw new RuntimeException("Trying to access an array element from a non-array type");
@@ -184,5 +184,14 @@ public class TypeUtils {
     public static boolean areTypesAssignable(Type sourceType, Type destinationType) {
         // TODO: Simple implementation that needs to be expanded
         return sourceType.getName().equals(destinationType.getName());
+    }
+
+
+    public static Type getOperatorType(String operator) {
+        return switch (operator) {
+            case "+", "-", "*", "/" -> new Type(INT_TYPE_NAME, false);
+            case "<", "&&", "not" -> new Type(BOOLEAN_TYPE_NAME, false);
+            default -> throw new RuntimeException("Unknown operator '" + operator + "'");
+        };
     }
 }

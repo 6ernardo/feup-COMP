@@ -31,6 +31,8 @@ public enum Kind {
     NEW_EXPR,
     ARRAY_CREATION_EXPR,
     THIS_LITERAL,
+    IF_STMT,
+    WHILE_STMT,
     MAIN_RETURN_TYPE; // Added this kind
     private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, RETURN_STMT);
     private static final Set<Kind> EXPRESSIONS = Set.of(BINARY_EXPR, INTEGER_LITERAL, VAR_REF_EXPR);
