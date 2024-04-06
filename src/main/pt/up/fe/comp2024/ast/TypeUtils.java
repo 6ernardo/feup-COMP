@@ -66,6 +66,7 @@ public class TypeUtils {
             var params = table.getParameters(currentMethodNode.get("name"));
             for (Symbol s : params) {
                 if (s.getName().equals(variableName)) {
+                    // check if its a varargs and if so return array type instead
                     return s.getType();
                 }
             }
@@ -145,7 +146,7 @@ public class TypeUtils {
 
     private static Type getArrayElementType(JmmNode arrayAccessExpr, SymbolTable table) {
         var type = getExprType(arrayAccessExpr.getChild(0), table);
-        if (!type.isArray()) {
+        if (!type.isArray()){
             throw new RuntimeException("Trying to access an array element from a non-array type");
         }
         return new Type(type.getName(), false);

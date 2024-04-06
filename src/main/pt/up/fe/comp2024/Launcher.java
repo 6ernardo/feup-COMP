@@ -34,7 +34,7 @@ public class  Launcher {
 
         // Print AST
         System.out.println(parserResult.getRootNode().toTree());
-
+        /*
         // Semantic Analysis stage
         JmmAnalysisImpl sema = new JmmAnalysisImpl();
         JmmSemanticsResult semanticsResult = sema.semanticAnalysis(parserResult);
@@ -48,7 +48,7 @@ public class  Launcher {
 
         // Print OLLIR code
         System.out.println(ollirResult.getOllirCode());
-
+        */
         // Code generation stage
         //JasminBackendImpl jasminGen = new JasminBackendImpl();
         //JasminResult jasminResult = jasminGen.toJasmin(ollirResult);

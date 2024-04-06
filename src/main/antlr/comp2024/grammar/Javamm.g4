@@ -85,7 +85,7 @@ varDecl
 
 type locals[boolean isArray=false, boolean isVarArgs=false]
     : name= INT LBRACK RBRACK {$isArray=true;}
-    | name= INT ELLIPSIS {$isVarArgs=true;}
+    | name= INT ELLIPSIS {$isVarArgs=true; $isArray=true;}
     | name= INT
     | name= BOOLEAN
     | name= STRING
@@ -96,8 +96,9 @@ returnStmt
     : RETURN expr SEMI
     ;
 
-methodDecl locals[boolean isPublic=false]
+methodDecl locals[boolean isPublic=false, boolean isStatic=false]
     : (PUBLIC {$isPublic=true;})?
+        (STATIC {$isStatic=true;})? // added this but its optional from what i understood
         type name=ID
         LPAREN (param (COMMA param)*)? RPAREN
         LCURLY
@@ -106,7 +107,8 @@ methodDecl locals[boolean isPublic=false]
             returnStmt
         RCURLY
     | (PUBLIC {$isPublic=true;})?
-        STATIC mainReturnType name=MAIN
+        STATIC {$isStatic=true;}
+        mainReturnType name=MAIN
         LPAREN STRING LBRACK RBRACK paramName=ID RPAREN
         LCURLY
             varDecl*
@@ -118,8 +120,8 @@ mainReturnType locals[boolean isArray=false, boolean isVarArgs=false]
     : name= VOID;
 
 param
-    : type name=ID  #Parameter
-    | type name=MAIN #Parameter
+    : type name=ID
+    | type name=MAIN
     ;
 
 stmt

@@ -79,9 +79,18 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private String visitImportDecl(JmmNode node , Void unused){
 
-        var importName = node.get("name");
+        StringBuilder code = new StringBuilder();
 
-        return "import " + importName + ";\n";
+        code.append("import ");
+
+        for (var packageNode : node.getChildren()){
+            var name = packageNode.get("name");
+            code.append(name);
+        }
+
+        code.append(END_STMT);
+
+        return code.toString();
     }
 
     private String visitAssignStmt(JmmNode node, Void unused) {

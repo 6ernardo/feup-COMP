@@ -39,6 +39,28 @@ public class InvalidAssignment extends AnalysisVisitor {
             return null;
         }
 
+        // check if : rhs type is the current class and lhs type is the parent class
+
+        // first get superclass
+        String superClass = table.getSuper();
+        // get current class
+        String currentClass = table.getClassName();
+
+        if (superClass != null) {
+            // check if the assignType is the superClass
+            if (assignType.getName().equals(superClass) && childType.getName().equals(currentClass)) {
+                // we have a case of upcasting
+                return null;
+            }
+        }
+
+        // if both types are imports then we can't check
+        if (table.getImports().stream().anyMatch(imported -> imported.equals(assignType.getName())) &&
+                table.getImports().stream().anyMatch(imported -> imported.equals(childType.getName()))) {
+            return null;
+        }
+
+
         // Create error report
         String message = "Invalid assignment of variable";
         addReport(Report.newError(
