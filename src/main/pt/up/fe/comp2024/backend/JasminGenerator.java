@@ -69,12 +69,24 @@ public class JasminGenerator {
 
         var code = new StringBuilder();
 
+        // get imports from OllirResult
+        var imports = ollirResult.getOllirClass().getImports();
+        for (var imp : imports) {
+            code.append(".import ").append(imp).append(NL);
+        }
+
         // generate class name
         var className = ollirResult.getOllirClass().getClassName();
         code.append(".class ").append(className).append(NL).append(NL);
 
-        // TODO: Hardcoded to Object, needs to be expanded
-        code.append(".super java/lang/Object").append(NL);
+
+        var superClass = ollirResult.getOllirClass().getSuperClass();
+
+        if (superClass != null && !superClass.isEmpty()) {
+            code.append(".super ").append(superClass.replace('.', '/')).append(NL);
+        } else {
+            code.append(".super java/lang/Object").append(NL);
+        }
 
         // generate a single constructor method
         var defaultConstructor = """
@@ -118,8 +130,23 @@ public class JasminGenerator {
 
         var methodName = method.getMethodName();
 
+        /*
         // TODO: Hardcoded param types and return type, needs to be expanded
         code.append("\n.method ").append(modifier).append(methodName).append("(I)I").append(NL);
+        */
+        // Generate the method signature
+        StringBuilder methodSignature = new StringBuilder();
+        methodSignature.append("(");
+        for (Element parameter : method.getParams()){
+            var paramType = parameter.getType();
+            var paramTypeSignature = getTypeSignature(paramType);
+            methodSignature.append(getTypeSignature(paramType));
+        }
+        methodSignature.append(")");
+        methodSignature.append(getTypeSignature(method.getReturnType()));
+
+        // Append the method signature to the code
+        code.append("\n.method ").append(modifier).append(methodName).append(methodSignature).append(NL);
 
         // Add limits
         code.append(TAB).append(".limit stack 99").append(NL);
@@ -200,12 +227,38 @@ public class JasminGenerator {
     private String generateReturn(ReturnInstruction returnInst) {
         var code = new StringBuilder();
 
-        // TODO: Hardcoded to int return type, needs to be expanded
+        var returnOperand = returnInst.getOperand();
 
-        code.append(generators.apply(returnInst.getOperand()));
-        code.append("ireturn").append(NL);
+        if (returnOperand == null) {
+            return "return" + NL;
+        }
+        // Generate code for the return value
+        code.append(generators.apply(returnOperand));
+
+        // Determine the return type and generate the appropriate Jasmin instruction
+        Type returnType = returnInst.getOperand().getType();
+        String returnInstruction;
+        switch (returnType.getTypeOfElement()) {
+            case INT32: returnInstruction = "ireturn"; break;
+            case BOOLEAN: returnInstruction = "ireturn"; break; // Booleans are represented as integers in Jasmin
+            case VOID: returnInstruction = "return"; break;
+            case CLASS, ARRAYREF: returnInstruction = "areturn"; break;
+            default: throw new NotImplementedException(returnType.getTypeOfElement().toString());
+        }
+
+        code.append(returnInstruction).append(NL);
 
         return code.toString();
     }
 
+    private String getTypeSignature(Type type) {
+        switch (type.getTypeOfElement()) {
+            case INT32: return "I";
+            case BOOLEAN: return "Z";
+            case VOID: return "V";
+            case CLASS: return "L" + type.toString() + ";";
+            case ARRAYREF: return "[" + type.toString();
+            default: throw new NotImplementedException(type.getTypeOfElement().toString());
+        }
+    }
 }
