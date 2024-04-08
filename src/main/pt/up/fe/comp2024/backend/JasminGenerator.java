@@ -70,10 +70,13 @@ public class JasminGenerator {
         var code = new StringBuilder();
 
         // get imports from OllirResult
+        // Imports in jasmin?
+        /*
         var imports = ollirResult.getOllirClass().getImports();
         for (var imp : imports) {
             code.append(".import ").append(imp).append(NL);
         }
+        */
 
         // generate class name
         var className = ollirResult.getOllirClass().getClassName();
@@ -134,6 +137,7 @@ public class JasminGenerator {
         // TODO: Hardcoded param types and return type, needs to be expanded
         code.append("\n.method ").append(modifier).append(methodName).append("(I)I").append(NL);
         */
+
         // Generate the method signature
         StringBuilder methodSignature = new StringBuilder();
         methodSignature.append("(");
@@ -257,8 +261,16 @@ public class JasminGenerator {
             case BOOLEAN: return "Z";
             case VOID: return "V";
             case CLASS: return "L" + type.toString() + ";";
-            case ARRAYREF: return "[" + type.toString();
+            case ARRAYREF: return "[" + getArrayType((ArrayType) type) + ";";
             default: throw new NotImplementedException(type.getTypeOfElement().toString());
         }
+    }
+
+    private String getArrayType(ArrayType type) {
+        switch (type.getElementType().getTypeOfElement()) {
+            case STRING: return "Ljava/lang/String";
+            default: return type.getElementType().getTypeOfElement().toString();
+        }
+
     }
 }
