@@ -48,6 +48,9 @@ public class JasminGenerator {
         generators.put(Operand.class, this::generateOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
+        generators.put(Field.class, this::generateFields);
+        generators.put(PutFieldInstruction.class, this::generatePutFields);
+        generators.put(GetFieldInstruction.class, this::generateGetFields);
     }
 
     public List<Report> getReports() {
@@ -69,20 +72,9 @@ public class JasminGenerator {
 
         var code = new StringBuilder();
 
-        // get imports from OllirResult
-        // Imports in jasmin?
-
-        /*
-        var imports = ollirResult.getOllirClass().getImports();
-        for (var imp : imports) {
-            code.append(".import ").append(imp).append(NL);
-        }
-        */
-
         // generate class name
         var className = ollirResult.getOllirClass().getClassName();
         code.append(".class ").append(className).append(NL).append(NL);
-
 
         var superClass = ollirResult.getOllirClass().getSuperClass();
 
@@ -90,6 +82,11 @@ public class JasminGenerator {
             code.append(".super ").append(superClass.replace('.', '/')).append(NL);
         } else {
             code.append(".super java/lang/Object").append(NL);
+        }
+
+        // generate class fields
+        for (var field: classUnit.getFields()) {
+            code.append(generators.apply(field));
         }
 
         // generate a single constructor method
@@ -136,11 +133,6 @@ public class JasminGenerator {
 
         String static_ = method.isStaticMethod() ? "static " : "";
         String final_ = method.isStaticMethod() ? "final " : "";
-
-        /*
-        // TODO: Hardcoded param types and return type, needs to be expanded
-        code.append("\n.method ").append(modifier).append(methodName).append("(I)I").append(NL);
-        */
 
         // Generate the method signature
         StringBuilder methodSignature = new StringBuilder();
@@ -277,5 +269,34 @@ public class JasminGenerator {
             default: return type.getElementType().getTypeOfElement().toString();
         }
 
+    }
+
+    private String generateFields(Field field) {
+        var code = new StringBuilder();
+
+//        var modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
+//                method.getMethodAccessModifier().name().toLowerCase() + " " :
+//                "";
+
+        var access = field.getFieldAccessModifier() != AccessModifier.DEFAULT ? field.getFieldAccessModifier().name().toLowerCase() + " " : "";
+
+        //var access = field.getFieldAccessModifier();
+        var static_ = field.isStaticField() ? "static " : "";
+        var final_ = field.isFinalField() ? "final" : "";
+        var name = field.getFieldName() + " ";
+        var descriptor = getTypeSignature(field.getFieldType());
+        var value = field.isInitialized() ? " = " + field.getInitialValue() : "";
+
+        code.append(".field ").append(access).append(static_).append(final_).append(name).append(descriptor).append(value).append(NL);
+
+        return code.toString();
+    }
+
+    private String generatePutFields(PutFieldInstruction putFieldInstruction) {
+        return "";
+    }
+
+    private String generateGetFields(GetFieldInstruction getFieldInstruction) {
+        return "";
     }
 }
