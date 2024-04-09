@@ -71,6 +71,7 @@ public class JasminGenerator {
 
         // get imports from OllirResult
         // Imports in jasmin?
+
         /*
         var imports = ollirResult.getOllirClass().getImports();
         for (var imp : imports) {
@@ -133,6 +134,9 @@ public class JasminGenerator {
 
         var methodName = method.getMethodName();
 
+        String static_ = method.isStaticMethod() ? "static " : "";
+        String final_ = method.isStaticMethod() ? "final " : "";
+
         /*
         // TODO: Hardcoded param types and return type, needs to be expanded
         code.append("\n.method ").append(modifier).append(methodName).append("(I)I").append(NL);
@@ -150,7 +154,7 @@ public class JasminGenerator {
         methodSignature.append(getTypeSignature(method.getReturnType()));
 
         // Append the method signature to the code
-        code.append("\n.method ").append(modifier).append(methodName).append(methodSignature).append(NL);
+        code.append("\n.method ").append(modifier).append(static_).append(final_).append(methodName).append(methodSignature).append(NL);
 
         // Add limits
         code.append(TAB).append(".limit stack 99").append(NL);
@@ -269,6 +273,7 @@ public class JasminGenerator {
     private String getArrayType(ArrayType type) {
         switch (type.getElementType().getTypeOfElement()) {
             case STRING: return "Ljava/lang/String";
+            // not done
             default: return type.getElementType().getTypeOfElement().toString();
         }
 
