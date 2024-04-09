@@ -20,8 +20,8 @@ public enum Kind {
     VAR_REF_EXPR,
     TRUE_LITERAL,
     FALSE_LITERAL,
-    STRING_LITERAL, // Added this kind
-    IMPORT_DECL, // Added this kind
+    STRING_LITERAL,
+    IMPORT_DECL,
     METHOD_CALL_EXPR,
     EXPR_STMT,
     PAREN_EXPR,

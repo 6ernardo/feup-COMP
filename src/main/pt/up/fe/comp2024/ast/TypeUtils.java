@@ -186,12 +186,16 @@ public class TypeUtils {
         return sourceType.getName().equals(destinationType.getName());
     }
 
-
     public static Type getOperatorType(String operator) {
         return switch (operator) {
             case "+", "-", "*", "/" -> new Type(INT_TYPE_NAME, false);
             case "<", "&&", "not" -> new Type(BOOLEAN_TYPE_NAME, false);
             default -> throw new RuntimeException("Unknown operator '" + operator + "'");
         };
+    }
+
+    public static Type getParamType(JmmNode methodCallExpr, int paramIndex, SymbolTable table) {
+        var methodName = methodCallExpr.get("name");
+        return table.getParameters(methodName).get(paramIndex).getType();
     }
 }
