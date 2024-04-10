@@ -49,8 +49,9 @@ public class JasminGenerator {
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
         generators.put(Field.class, this::generateFields);
-        generators.put(PutFieldInstruction.class, this::generatePutFields);
-        generators.put(GetFieldInstruction.class, this::generateGetFields);
+        generators.put(PutFieldInstruction.class, this::generatePutFields); // to implement
+        generators.put(GetFieldInstruction.class, this::generateGetFields); // to implement
+        generators.put(CallInstruction.class, this::generateCall);
     }
 
     public List<Report> getReports() {
@@ -290,10 +291,41 @@ public class JasminGenerator {
     }
 
     private String generatePutFields(PutFieldInstruction putFieldInstruction) {
-        return "";
+        var code = new StringBuilder();
+
+        code.append("aload_0").append(NL);
+        var bipush = "bipush " + ((LiteralElement) putFieldInstruction.getValue()).getLiteral();
+        var class_name = putFieldInstruction.getObject().getName().equals("this") ? ollirResult.getOllirClass().getClassName() : putFieldInstruction.getObject().getName();
+        var putfield = "putfield " + class_name + "/" + putFieldInstruction.getField().getName() + " " + getTypeSignature(putFieldInstruction.getField().getType());
+
+        code.append(bipush).append(NL).append(putfield).append(NL).append(NL);
+
+        return code.toString();
     }
 
     private String generateGetFields(GetFieldInstruction getFieldInstruction) {
+        var code = new StringBuilder();
+
+        code.append("aload_0").append(NL);
+        var class_name = getFieldInstruction.getObject().getName().equals("this") ? ollirResult.getOllirClass().getClassName() : getFieldInstruction.getObject().getName();
+        var getfield = "getfield " + class_name + "/" + getFieldInstruction.getField().getName() + " " + getTypeSignature(getFieldInstruction.getField().getType());
+
+        code.append(getfield).append(NL).append(NL);
+        return code.toString();
+    }
+
+    private String generateCall(CallInstruction callInstruction) {
+//        var code = new StringBuilder();
+//
+//        //var instance_name = callInstruction.getCaller().toString();
+//        //var invocation = "invocation:" + callInstruction.getInvocationType().name() + " " + instance_name;
+//
+//        var invocation = "inv:";
+//
+//        code.append(invocation);
+//
+//        return code.toString();
+
         return "";
     }
 }
