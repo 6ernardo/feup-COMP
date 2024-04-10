@@ -74,31 +74,50 @@ public class JasminGenerator {
 
         // generate class name
         var className = ollirResult.getOllirClass().getClassName();
-        code.append(".class ").append(className).append(NL).append(NL);
+        var classAccess = ollirResult.getOllirClass().getClassAccessModifier() != AccessModifier.DEFAULT ?
+                ollirResult.getOllirClass().getClassAccessModifier().name().toLowerCase() + " " : "";
+        code.append(".class ").append(classAccess).append(className).append(NL);
 
         var superClass = ollirResult.getOllirClass().getSuperClass();
+        var superName = (superClass != null && !superClass.isEmpty()) ? superClass : "java/lang/Object";
 
-        if (superClass != null && !superClass.isEmpty()) {
-            code.append(".super ").append(superClass.replace('.', '/')).append(NL);
-        } else {
-            code.append(".super java/lang/Object").append(NL);
-        }
+        code.append(".super ").append(superName).append(NL).append(NL);
+
+//        if (superClass != null && !superClass.isEmpty()) {
+//            code.append(".super ").append(superClass.replace('.', '/')).append(NL).append(NL);
+//        } else {
+//            code.append(".super java/lang/Object").append(NL).append(NL);
+//        }
 
         // generate class fields
         for (var field: classUnit.getFields()) {
             code.append(generators.apply(field));
         }
+        code.append(NL);
 
         // generate a single constructor method
-        var defaultConstructor = """
+//        var defaultConstructor = """
+//                ;default constructor
+//                .method public <init>()V
+//                    aload_0
+//                    invokespecial java/lang/Object/<init>()V
+//                    return
+//                .end method
+//                """;
+//        code.append(defaultConstructor);
+
+        var defaultConstructor = new StringBuilder();
+        defaultConstructor.append("""
                 ;default constructor
                 .method public <init>()V
                     aload_0
-                    invokespecial java/lang/Object/<init>()V
+                """);
+        defaultConstructor.append("    invokespecial ").append(superName).append("/<init>()V").append(NL);
+        defaultConstructor.append("""
                     return
                 .end method
-                """;
-        code.append(defaultConstructor);
+                """);
+        code.append(defaultConstructor.toString());
 
         // generate code for all other methods
         for (var method : ollirResult.getOllirClass().getMethods()) {
