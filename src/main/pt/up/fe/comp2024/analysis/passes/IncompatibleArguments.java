@@ -24,7 +24,15 @@ public class IncompatibleArguments extends AnalysisVisitor {
 
     private Void visitMethodCall(JmmNode methodCall, SymbolTable table) {
 
+        // Method is a declared method, return
+        var methodDeclName = methodCall.get("name");
+        if (table.getMethods().stream()
+                .noneMatch(methodDecl -> methodDecl.equals(methodDeclName))) {
+            return null;
+        }
+
         // Check all the params
+        var isVarArgs = false;
         for (int i = 1; i < methodCall.getChildren().size(); i++) {
             var paramNode = methodCall.getChildren().get(i);
             var paramType = TypeUtils.getParamType(methodCall, i - 1, table);

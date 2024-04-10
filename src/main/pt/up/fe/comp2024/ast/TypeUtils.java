@@ -196,6 +196,22 @@ public class TypeUtils {
 
     public static Type getParamType(JmmNode methodCallExpr, int paramIndex, SymbolTable table) {
         var methodName = methodCallExpr.get("name");
+
+        // check if method has params
+        if (table.getParameters(methodName) == null) {
+            throw new RuntimeException("Method has no parameters");
+        }
+
+        // Check if the param is varargs
+        if ((Boolean) table.getParameters(methodName).get(table.getParameters(methodName).size() - 1).getType().getObject("isVarArgs")) {
+            // Now i know that my last param is the varargs
+        }
+
+        // check if paramIndex overflow
+        if (table.getParameters(methodName).size() > paramIndex) {
+            throw new RuntimeException("Parameter index overflow");
+        }
+
         return table.getParameters(methodName).get(paramIndex).getType();
     }
 }
