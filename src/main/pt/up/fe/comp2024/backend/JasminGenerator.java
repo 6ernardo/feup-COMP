@@ -83,28 +83,12 @@ public class JasminGenerator {
 
         code.append(".super ").append(superName).append(NL).append(NL);
 
-//        if (superClass != null && !superClass.isEmpty()) {
-//            code.append(".super ").append(superClass.replace('.', '/')).append(NL).append(NL);
-//        } else {
-//            code.append(".super java/lang/Object").append(NL).append(NL);
-//        }
-
         // generate class fields
+        code.append(";fields").append(NL);
         for (var field: classUnit.getFields()) {
             code.append(generators.apply(field));
         }
         code.append(NL);
-
-        // generate a single constructor method
-//        var defaultConstructor = """
-//                ;default constructor
-//                .method public <init>()V
-//                    aload_0
-//                    invokespecial java/lang/Object/<init>()V
-//                    return
-//                .end method
-//                """;
-//        code.append(defaultConstructor);
 
         var defaultConstructor = new StringBuilder();
         defaultConstructor.append("""
@@ -151,7 +135,7 @@ public class JasminGenerator {
         var methodName = method.getMethodName();
 
         String static_ = method.isStaticMethod() ? "static " : "";
-        String final_ = method.isStaticMethod() ? "final " : "";
+        String final_ = method.isFinalMethod() ? "final " : "";
 
         // Generate the method signature
         StringBuilder methodSignature = new StringBuilder();
@@ -293,13 +277,7 @@ public class JasminGenerator {
     private String generateFields(Field field) {
         var code = new StringBuilder();
 
-//        var modifier = method.getMethodAccessModifier() != AccessModifier.DEFAULT ?
-//                method.getMethodAccessModifier().name().toLowerCase() + " " :
-//                "";
-
         var access = field.getFieldAccessModifier() != AccessModifier.DEFAULT ? field.getFieldAccessModifier().name().toLowerCase() + " " : "";
-
-        //var access = field.getFieldAccessModifier();
         var static_ = field.isStaticField() ? "static " : "";
         var final_ = field.isFinalField() ? "final" : "";
         var name = field.getFieldName() + " ";
