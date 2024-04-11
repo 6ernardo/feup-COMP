@@ -49,8 +49,8 @@ public class JasminGenerator {
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
         generators.put(Field.class, this::generateFields);
-        generators.put(PutFieldInstruction.class, this::generatePutFields); // to implement
-        generators.put(GetFieldInstruction.class, this::generateGetFields); // to implement
+        generators.put(PutFieldInstruction.class, this::generatePutFields);
+        generators.put(GetFieldInstruction.class, this::generateGetFields);
         generators.put(CallInstruction.class, this::generateCall);
     }
 
@@ -190,7 +190,19 @@ public class JasminGenerator {
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
 
         // TODO: Hardcoded for int type, needs to be expanded
-        code.append("istore ").append(reg).append(NL);
+        //code.append("istore ").append(reg).append(NL);
+        code.append(
+                switch (assign.getTypeOfAssign().getTypeOfElement()) {
+                    case INT32, BOOLEAN -> "istore ";
+                    //case ARRAYREF -> null;
+                    case OBJECTREF -> "astore ";
+                    default -> "error";
+                    //case CLASS -> null;
+                    //case THIS -> null;
+                    //case STRING -> null;
+                    //case VOID -> null;
+                }
+        ).append(reg).append(NL).append(NL);
 
         return code.toString();
     }
@@ -315,17 +327,19 @@ public class JasminGenerator {
     }
 
     private String generateCall(CallInstruction callInstruction) {
-//        var code = new StringBuilder();
-//
-//        //var instance_name = callInstruction.getCaller().toString();
-//        //var invocation = "invocation:" + callInstruction.getInvocationType().name() + " " + instance_name;
-//
-//        var invocation = "inv:";
-//
-//        code.append(invocation);
-//
-//        return code.toString();
+        var code = new StringBuilder();
+        var name = currentMethod.getOllirClass().getClassName();
 
-        return "";
+        if(callInstruction.getInvocationType() == CallType.NEW){
+            var instance = "new " + name;
+
+            code.append(instance).append(NL).append("dup").append(NL);
+        }
+        else {
+            var invoke = callInstruction.getInvocationType().name() + " " + name + "/<init>()V";
+            code.append(invoke).append(NL);
+        }
+
+        return code.toString();
     }
 }
