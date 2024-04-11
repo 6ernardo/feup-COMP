@@ -87,7 +87,7 @@ public class TypeUtils {
             }
         }
 
-        throw new RuntimeException("Variable '" + variableName + "' not found in the symbol table");
+        return null;
     }
 
     public static Type getAssignStmtType(JmmNode assignStmt, SymbolTable table) {

@@ -46,7 +46,7 @@ public class InvalidOperation extends AnalysisVisitor {
         Type operatorType = TypeUtils.getOperatorType(operator);
 
         // check if the type of operation is valid
-        if ( operatorType.equals(leftType) && operatorType.equals(rightType) ) {
+        if ( (operatorType.equals(leftType) || leftType == null) && (operatorType.equals(rightType) ||rightType == null) ) {
             return null;
         }
 
