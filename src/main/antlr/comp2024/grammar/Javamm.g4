@@ -136,16 +136,16 @@ stmt
 expr
     : LPAREN expr RPAREN #ParenExpr
     | op=NOT expr #UnaryExpr
-    | expr op = (MUL | DIV) expr #BinaryExpr
-    | expr op = (ADD | SUB) expr #BinaryExpr
-    | expr op =LESS expr #BinaryExpr
-    | expr op=AND expr #BinaryExpr
     | expr LBRACK expr RBRACK #ArrayAccessExpr
     | expr PERIOD LENGTH #ArrayLengthExpr
     | expr PERIOD name=ID LPAREN (expr (COMMA expr)*)? RPAREN #MethodCallExpr
     | NEW name=INT LBRACK expr RBRACK #NewExpr
     | NEW name=ID LPAREN RPAREN #NewExpr
     | LBRACK (expr (COMMA expr)*)? RBRACK #ArrayCreationExpr
+    | expr op = (MUL | DIV) expr #BinaryExpr
+    | expr op = (ADD | SUB) expr #BinaryExpr
+    | expr op =LESS expr #BinaryExpr
+    | expr op=AND expr #BinaryExpr
     | value=INTEGER #IntegerLiteral
     | TRUE #TrueLiteral
     | FALSE #FalseLiteral

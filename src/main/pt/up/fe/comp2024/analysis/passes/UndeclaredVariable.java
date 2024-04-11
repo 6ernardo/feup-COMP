@@ -38,24 +38,37 @@ public class UndeclaredVariable extends AnalysisVisitor {
         // Var is a field, return
         if (table.getFields().stream()
                 .anyMatch(param -> param.getName().equals(varRefName))) {
+            varRefExpr.putObject("isStatic", false);
             return null;
         }
 
         // Var is a parameter, return
         if (table.getParameters(currentMethod).stream()
                 .anyMatch(param -> param.getName().equals(varRefName))) {
+            varRefExpr.putObject("isStatic", false);
             return null;
         }
 
         // Var is a declared variable, return
         if (table.getLocalVariables(currentMethod).stream()
                 .anyMatch(varDecl -> varDecl.getName().equals(varRefName))) {
+            varRefExpr.putObject("isStatic", false);
             return null;
         }
 
         // Var is an import variable , return
         if (table.getImports().stream()
                 .anyMatch(imported -> imported.equals(varRefName))) {
+            varRefExpr.putObject("type", varRefName);
+            varRefExpr.putObject("isStatic", true);
+            return null;
+        }
+
+        // the class we are in
+        var currentClass = table.getClassName();
+        if (currentClass.equals(varRefName)) {
+            varRefExpr.putObject("type", currentClass);
+            varRefExpr.putObject("isStatic", true);
             return null;
         }
 

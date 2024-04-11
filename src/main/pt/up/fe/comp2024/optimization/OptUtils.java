@@ -48,6 +48,10 @@ public class OptUtils {
 
     public static String toOllirType(Type type) {
 
+        if (type == null) {
+            return toOllirType("void");
+        }
+
         boolean isArray = type.isArray();
 
         if (isArray) {

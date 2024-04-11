@@ -50,7 +50,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private String visitExprStmt(JmmNode node, Void unused) {
         var expr = exprVisitor.visit(node.getJmmChild(0));
-        return expr.getComputation() + expr.getCode() + END_STMT;
+        return expr.getComputation();
     }
 
     private String visitVarDecl(JmmNode node, Void unused) {

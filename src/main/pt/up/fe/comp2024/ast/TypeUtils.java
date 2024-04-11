@@ -222,4 +222,50 @@ public class TypeUtils {
 
         return table.getParameters(methodName).get(paramIndex).getType();
     }
+
+
+    public static boolean isVariable(String name , String methodSignature, SymbolTable table){
+
+
+        var locals = table.getLocalVariables(methodSignature);
+        if (locals != null){
+            for (Symbol s : locals){
+                if (s.getName().equals(name)){
+                    return true;
+                }
+            }
+        }
+
+
+        var params = table.getParameters(methodSignature);
+        if (params != null){
+            for (Symbol s : params){
+                if (s.getName().equals(name)){
+                    return true;
+                }
+            }
+        }
+
+        var fields = table.getFields();
+        if (fields != null){
+            for (Symbol s : fields){
+                if (s.getName().equals(name)){
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean isImport(String name, SymbolTable table){
+
+        var imports = table.getImports();
+        for (String s : imports) {
+            if (s.equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
