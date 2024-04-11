@@ -72,3 +72,8 @@ application {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
+
+test {
+    // On macOS, this prevent icon from being added to Dock and stealing focus
+    jvmArgs "-Dapple.awt.UIElement=true"
+}

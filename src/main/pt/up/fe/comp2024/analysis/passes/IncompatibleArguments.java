@@ -1,6 +1,8 @@
 package pt.up.fe.comp2024.analysis.passes;
 
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
@@ -32,13 +34,12 @@ public class IncompatibleArguments extends AnalysisVisitor {
         }
 
         // Check all the params
-        var isVarArgs = false;
         for (int i = 1; i < methodCall.getChildren().size(); i++) {
-            var paramNode = methodCall.getChildren().get(i);
+            var argNode = methodCall.getChildren().get(i);
+            Type argType = TypeUtils.getVarExprType(argNode, table);
             var paramType = TypeUtils.getParamType(methodCall, i - 1, table);
-            var localType = TypeUtils.getVarExprType(paramNode, table);
 
-            if (paramType != localType) {
+            if (!paramType.getName().equals(argType.getName())) {
                 // Create error report
                 var message = "Incompatible argument type. Expected " + methodCall + " but got " + methodCall;
                 addReport(Report.newError(

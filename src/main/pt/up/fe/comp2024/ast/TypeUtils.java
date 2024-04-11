@@ -168,6 +168,11 @@ public class TypeUtils {
     }
 
     public static Type getVarExprType(JmmNode varRefExpr, SymbolTable table) {
+        // Check varRefExpr is integer literal
+        if (varRefExpr.getKind().equals(Kind.INTEGER_LITERAL.toString())) {
+            return new Type("int", false);
+        }
+
         var varName = varRefExpr.get("name");
 
         // check if we are in a method and what method
@@ -202,13 +207,16 @@ public class TypeUtils {
             throw new RuntimeException("Method has no parameters");
         }
 
-        // Check if the param is varargs
-        if ((Boolean) table.getParameters(methodName).get(table.getParameters(methodName).size() - 1).getType().getObject("isVarArgs")) {
-            // Now i know that my last param is the varargs
+        // Check if the param is varargs, if so return the varargs type
+        if (paramIndex >= table.getParameters(methodName).size() - 1) {
+            var lastParam = table.getParameters(methodName).get(table.getParameters(methodName).size() - 1);
+            if ((Boolean) lastParam.getType().getObject("isVarArgs")) {
+                return lastParam.getType();
+            }
         }
 
         // check if paramIndex overflow
-        if (table.getParameters(methodName).size() > paramIndex) {
+        if (paramIndex > table.getParameters(methodName).size() - 1) {
             throw new RuntimeException("Parameter index overflow");
         }
 
