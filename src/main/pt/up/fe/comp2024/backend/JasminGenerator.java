@@ -320,16 +320,23 @@ public class JasminGenerator {
 
     private String generateCall(CallInstruction callInstruction) {
         var code = new StringBuilder();
-        var name = currentMethod.getOllirClass().getClassName();
 
         if(callInstruction.getInvocationType() == CallType.NEW){
+            var name = ((ClassType) callInstruction.getCaller().getType()).getName();
             var instance = "new " + name;
 
             code.append(instance).append(NL).append("dup").append(NL);
         }
-        else {
+        else if(callInstruction.getInvocationType() == CallType.invokespecial){
+            var name = ((ClassType) callInstruction.getCaller().getType()).getName();
             var invoke = callInstruction.getInvocationType().name() + " " + name + "/<init>()V";
             code.append(invoke).append(NL);
+        }
+        else {
+            // ((LiteralElement) callInstruction.getMethodName()).getLiteral()
+            var name = ((Operand) callInstruction.getCaller()).getName() + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+            var invoke = callInstruction.getInvocationType().name() + " " + name + "()V";
+            code.append(invoke);
         }
 
         return code.toString();
