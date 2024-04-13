@@ -161,6 +161,10 @@ public class JasminGenerator {
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
 
             code.append(instCode);
+
+            if(inst.getInstType() == InstructionType.CALL && ((CallInstruction) inst).getReturnType().getTypeOfElement() != ElementType.VOID){
+                code.append("pop");
+            }
         }
 
         code.append(".end method\n");
@@ -341,37 +345,52 @@ public class JasminGenerator {
             code.append(instance).append(NL).append("dup").append(NL);
         }
         else if(callInstruction.getInvocationType() == CallType.invokespecial){
-            var name = ((ClassType) callInstruction.getCaller().getType()).getName();
-            var invoke = callInstruction.getInvocationType().name() + " " + name + "/<init>()V";
-            code.append(invoke).append(NL);
-        }
-        else if(callInstruction.getInvocationType() == CallType.invokevirtual){
-//            // Generate the method signature
-//            StringBuilder methodSignature = new StringBuilder();
-//            methodSignature.append("(");
-//            for (Element parameter : method.getParams()){
-//                var paramType = parameter.getType();
-//                var paramTypeSignature = getTypeSignature(paramType);
-//                methodSignature.append(getTypeSignature(paramType));
-//            }
-//            methodSignature.append(")");
-//            methodSignature.append(getTypeSignature(method.getReturnType()));
-
             var load = loadVariable(callInstruction.getCaller());
+
             StringBuilder args = new StringBuilder();
             for(Element parameter : callInstruction.getArguments()){
                 args.append(getTypeSignature(parameter.getType()));
             }
-            var name = ((ClassType) callInstruction.getCaller().getType()).getName() + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
-            var invoke = callInstruction.getInvocationType().name() + " " + name + "(" + args + ")" + getTypeSignature(callInstruction.getReturnType());
+
+            var name = ((ClassType) callInstruction.getCaller().getType()).getName();
+            var invoke = callInstruction.getInvocationType().name() + " " + name + "/<init>(" + args + ")V";
             code.append(load).append(NL).append(invoke).append(NL);
         }
-        else {
-            // ((LiteralElement) callInstruction.getMethodName()).getLiteral()
-            var name = ((Operand) callInstruction.getCaller()).getName() + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
-            var invoke = callInstruction.getInvocationType().name() + " " + name + "()V";
-            code.append(invoke).append(NL);
+        else if(callInstruction.getInvocationType() == CallType.invokevirtual){
+            var load = loadVariable(callInstruction.getCaller());
+
+            StringBuilder loads = new StringBuilder();
+            for(Element parameter : callInstruction.getArguments()){
+                loads.append(loadVariable(parameter)).append(NL);
+            }
+
+            StringBuilder args = new StringBuilder();
+            for(Element parameter : callInstruction.getArguments()){
+                args.append(getTypeSignature(parameter.getType()));
+            }
+
+            var name = ((ClassType) callInstruction.getCaller().getType()).getName() + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+            var invoke = callInstruction.getInvocationType().name() + " " + name + "(" + args + ")" + getTypeSignature(callInstruction.getReturnType());
+            code.append(load).append(NL).append(loads).append(invoke).append(NL);
         }
+        else if(callInstruction.getInvocationType() == CallType.invokestatic) {
+
+            StringBuilder loads = new StringBuilder();
+            for(Element parameter : callInstruction.getArguments()){
+                loads.append(loadVariable(parameter)).append(NL);
+            }
+
+            StringBuilder args = new StringBuilder();
+            for(Element parameter : callInstruction.getArguments()){
+                args.append(getTypeSignature(parameter.getType()));
+            }
+
+            var name = ((Operand) callInstruction.getCaller()).getName() + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+            var invoke = callInstruction.getInvocationType().name() + " " + name + "(" + args + ")V";
+            code.append(loads).append(invoke).append(NL);
+        }
+
+        //outros???
 
         return code.toString();
     }
