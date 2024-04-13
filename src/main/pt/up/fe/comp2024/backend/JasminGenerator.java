@@ -161,6 +161,10 @@ public class JasminGenerator {
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
 
             code.append(instCode);
+
+            if(inst.getInstType() == InstructionType.CALL && ((CallInstruction) inst).getReturnType().getTypeOfElement() != ElementType.VOID){
+                code.append("pop");
+            }
         }
 
         code.append(".end method\n");
@@ -193,14 +197,10 @@ public class JasminGenerator {
         //code.append("istore ").append(reg).append(NL);
         code.append(
                 switch (assign.getTypeOfAssign().getTypeOfElement()) {
-                    case INT32, BOOLEAN -> "istore ";
-                    //case ARRAYREF -> null;
-                    case OBJECTREF -> "astore ";
+                    case INT32, BOOLEAN -> currentMethod.getVarTable().get(operand.getName()).getVarType().getTypeOfElement()
+                            == ElementType.ARRAYREF ? "iastore " : "istore ";
+                    case OBJECTREF, THIS, STRING, ARRAYREF -> "astore ";
                     default -> "error";
-                    //case CLASS -> null;
-                    //case THIS -> null;
-                    //case STRING -> null;
-                    //case VOID -> null;
                 }
         ).append(reg).append(NL).append(NL);
 
@@ -211,8 +211,25 @@ public class JasminGenerator {
         return generators.apply(singleOp.getSingleOperand());
     }
 
-    private String generateLiteral(LiteralElement literal) {
-        return "ldc " + literal.getLiteral() + NL;
+    private String generateLiteral(LiteralElement element) {
+        //return "ldc " + literal.getLiteral() + NL;
+        String result = "";
+        String literal = element.getLiteral();
+        ElementType elementType = element.getType().getTypeOfElement();
+        if (elementType != ElementType.INT32 && elementType != ElementType.BOOLEAN) {
+            result += "ldc " + literal;
+        } else {
+            int value = Integer.parseInt(literal);
+
+            // Priority
+            if (value>= -1 && value<=5) result += "iconst_";
+            else if (value>= -128 && value<=127) result += "bipush ";
+            else if (value>= -32768 && value<=32767) result += "sipush ";
+            else result += "ldc ";
+
+            result += (value == -1) ? "m1" : value;
+        }
+        return result+=NL;
     }
 
     private String generateOperand(Operand operand) {
@@ -328,17 +345,103 @@ public class JasminGenerator {
             code.append(instance).append(NL).append("dup").append(NL);
         }
         else if(callInstruction.getInvocationType() == CallType.invokespecial){
+            var load = loadVariable(callInstruction.getCaller());
+
+            StringBuilder args = new StringBuilder();
+            for(Element parameter : callInstruction.getArguments()){
+                args.append(getTypeSignature(parameter.getType()));
+            }
+
             var name = ((ClassType) callInstruction.getCaller().getType()).getName();
-            var invoke = callInstruction.getInvocationType().name() + " " + name + "/<init>()V";
-            code.append(invoke).append(NL);
+            var invoke = callInstruction.getInvocationType().name() + " " + name + "/<init>(" + args + ")V";
+            code.append(load).append(NL).append(invoke).append(NL);
         }
-        else {
-            // ((LiteralElement) callInstruction.getMethodName()).getLiteral()
+        else if(callInstruction.getInvocationType() == CallType.invokevirtual){
+            var load = loadVariable(callInstruction.getCaller());
+
+            StringBuilder loads = new StringBuilder();
+            for(Element parameter : callInstruction.getArguments()){
+                loads.append(loadVariable(parameter)).append(NL);
+            }
+
+            StringBuilder args = new StringBuilder();
+            for(Element parameter : callInstruction.getArguments()){
+                args.append(getTypeSignature(parameter.getType()));
+            }
+
+            var name = ((ClassType) callInstruction.getCaller().getType()).getName() + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+            var invoke = callInstruction.getInvocationType().name() + " " + name + "(" + args + ")" + getTypeSignature(callInstruction.getReturnType());
+            code.append(load).append(NL).append(loads).append(invoke).append(NL);
+        }
+        else if(callInstruction.getInvocationType() == CallType.invokestatic) {
+
+            StringBuilder loads = new StringBuilder();
+            for(Element parameter : callInstruction.getArguments()){
+                loads.append(loadVariable(parameter)).append(NL);
+            }
+
+            StringBuilder args = new StringBuilder();
+            for(Element parameter : callInstruction.getArguments()){
+                args.append(getTypeSignature(parameter.getType()));
+            }
+
             var name = ((Operand) callInstruction.getCaller()).getName() + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
-            var invoke = callInstruction.getInvocationType().name() + " " + name + "()V";
-            code.append(invoke);
+            var invoke = callInstruction.getInvocationType().name() + " " + name + "(" + args + ")V";
+            code.append(loads).append(invoke).append(NL);
         }
+
+        //outros???
 
         return code.toString();
     }
+
+    private String loadVariable(Element element) {
+        if (element instanceof LiteralElement) return this.loadLiteralVariable((LiteralElement) element);
+        if (element instanceof ArrayOperand) return this.loadArrayVariable((ArrayOperand) element);
+        if (element instanceof Operand) return this.loadOperandVariable((Operand) element);
+        return null;
+    }
+
+    private String loadLiteralVariable(LiteralElement element) {
+        String result = "";
+        String literal = element.getLiteral();
+        ElementType elementType = element.getType().getTypeOfElement();
+        if (elementType != ElementType.INT32 && elementType != ElementType.BOOLEAN) {
+            result += "ldc " + literal;
+        } else {
+            int value = Integer.parseInt(literal);
+
+            // Priority
+            if (value>= -1 && value<=5) result += "iconst_";
+            else if (value>= -128 && value<=127) result += "bipush ";
+            else if (value>= -32768 && value<=32767) result += "sipush ";
+            else result += "ldc ";
+
+            result += (value == -1) ? "m1" : value;
+        }
+        return result;
+    }
+
+    private String loadArrayVariable(ArrayOperand element) {
+        return  "aload" + this.getVariableIndex(element.getName()) +
+                "\n" + this.loadVariable(element.getIndexOperands().get(0)) +
+                "iload";
+    }
+
+    private String loadOperandVariable(Operand operand) {
+        return switch (operand.getType().getTypeOfElement()) {
+            case THIS -> "aload_0";
+            case STRING, ARRAYREF, OBJECTREF -> "aload" + this.getVariableIndex(operand.getName());
+            case BOOLEAN, INT32 -> "iload" + this.getVariableIndex(operand.getName());
+            default -> null;
+        };
+    }
+
+    private String getVariableIndex(String variableName) {
+        if (variableName.equals("this")) return "_0";
+        int number = currentMethod.getVarTable().get(variableName).getVirtualReg();
+        //int number = table.get(variableName).getVirtualReg();
+        return (number < 4 ? "_" : " ") + number;
+    }
+
 }
