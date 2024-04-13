@@ -4,6 +4,7 @@ import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
+import pt.up.fe.comp.jmm.ollir.OllirUtils;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
@@ -40,81 +41,76 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
 
     private OllirExprResult visitMethodCall(JmmNode node , Void unused){
+        // progrma flow
 
         StringBuilder computation = new StringBuilder();
-
         StringBuilder paramCodes = new StringBuilder();
 
+        // extract : name of the function, target expr and argument exprs
         String nameOfTheFunction = node.get("name");
         List<JmmNode> argumentsExpr = node.getChildren();
+        JmmNode target = argumentsExpr.remove(0);
 
-        JmmNode beforeTheDotExpr = argumentsExpr.remove(0);
-
+        // compute the arguments
         for (JmmNode argument : argumentsExpr){
             OllirExprResult argumentResult = visit(argument);
             computation.append(argumentResult.getComputation());
-            paramCodes.append(", " + argumentResult.getCode());
+            paramCodes.append(", ").append(argumentResult.getCode());
         }
 
-        OllirExprResult beforeTheDotResult = visit(beforeTheDotExpr);
+        OllirExprResult targetResult = visit(target);
+        computation.append(targetResult.getComputation());
 
-        computation.append(beforeTheDotResult.getComputation());
-
-        // figure out if the function is static or not
-        // how? check if the beforeTheDotExpr is a varRefExpr.  if it is, check if its an existing variable(local, param or field)
-        // if its not and its one of the import then we are good.
         boolean isStatic = false;
 
         // do verification
-        if (VAR_REF_EXPR.check(beforeTheDotExpr)){
-            if ((boolean) beforeTheDotExpr.getObject("isStatic")){
+        if (VAR_REF_EXPR.check(target)){
+            if ((boolean) target.getObject("isStatic")){
                 isStatic = true;
             }
         }
 
-        if (isStatic){
-            return makeStaticFunctionCall(node, beforeTheDotResult.getCode(), nameOfTheFunction, paramCodes.toString());
-        } else {
-            return makeNonStaticFunctionCall(node, beforeTheDotResult.getCode(), nameOfTheFunction, paramCodes.toString());
+        // make code like this
+
+        String code;
+        var type = OptUtils.toOllirType(TypeUtils.getExprType(node, table));
+
+        if (type == null){
+            type = getSpecialCaseType(node);
         }
-    }
 
-    private OllirExprResult makeStaticFunctionCall(JmmNode node, String className, String methodName, String paramCodes) {
-        StringBuilder computation = new StringBuilder();
-
-        String type = OptUtils.toOllirType(TypeUtils.getExprType(node, table));
-
-        if (type.equals(".V")) {
-            // call the function and dont store the result
-            computation.append("invokestatic(").append(className).append(", \"").append(methodName).append("\"").append(paramCodes).append(")").append(type).append(END_STMT);
-            return new OllirExprResult("", computation.toString());
-        }else{
-            // get next temp
+        if (!type.equals(".V")){
+            // get a temp variable and add "temp := " to the code
             String nt = OptUtils.getTemp();
-            // write "nt.type :=.type invokestatic(className, methodName, paramCodes).type"
             computation.append(nt).append(type).append(SPACE).append(ASSIGN).append(type).append(SPACE);
-            computation.append("invokestatic(").append(className).append(", \"").append(methodName).append("\"").append(paramCodes).append(")").append(type).append(END_STMT);
-
-            String code = nt + type;
-
-            return new OllirExprResult(code, computation.toString());
+            code = nt + type;
+        }else{
+            code = "";
         }
-    }
 
-    private OllirExprResult makeNonStaticFunctionCall(JmmNode node, String className, String methodName, String paramCodes) {
-        StringBuilder computation = new StringBuilder();
+        // make the function call
 
-        // get next temp
-        String nt = OptUtils.getTemp();
-        String type = OptUtils.toOllirType(TypeUtils.getExprType(node, table));
+        if (isStatic){
+            computation.append("invokestatic(");
+        }else{
+            computation.append("invokevirtual(");
+        }
 
-        // write "nt.type :=.type invokevirtual(className, methodName, paramCodes).type"
-        computation.append(nt).append(type).append(SPACE).append(ASSIGN).append(type).append(SPACE);
-        computation.append("invokevirtual(").append(className).append(", \"").append(methodName).append("\"").append(paramCodes).append(")").append(type).append(END_STMT);
-
-        String code = nt + type;
+        computation.append(targetResult.getCode()).append(", \"").append(nameOfTheFunction).append("\"")
+                .append(paramCodes.toString()).append(")").append(type).append(END_STMT);
 
         return new OllirExprResult(code, computation.toString());
+    }
+
+    private String getSpecialCaseType(JmmNode node) {
+        // this special can occur in direct assignments or call statements
+        // if its a direct assignment the type of the node is the type of the variable
+        // else its void
+        var parent = node.getParent();
+        if (ASSIGN_STMT.check(parent)){
+            return OptUtils.toOllirType(TypeUtils.getAssignStmtType(parent, table));
+        }
+        return ".V";
     }
 
     private OllirExprResult visitInteger(JmmNode node, Void unused) {
@@ -167,16 +163,17 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     }
 
     private OllirExprResult visitVarRef(JmmNode node, Void unused) {
+        // here we can have either a variable or an import in case we are calling a static function
         var id = node.get("name");
 
         if (isImport(node)){
-            return new OllirExprResult(id);
+            return new OllirExprResult(id); // return the import
         }
 
-        Type type = TypeUtils.getExprType(node, table);
-        String ollirType = OptUtils.toOllirType(type);
+        Type type = TypeUtils.getExprType(node, table); // get the type of the variable
+        String ollirType = OptUtils.toOllirType(type); // convert it to ollir type
 
-        String code = id + ollirType;
+        String code = id + ollirType; // create the code which is the name of the variable + its type
 
         return new OllirExprResult(code);
     }

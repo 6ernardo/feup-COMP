@@ -4,6 +4,10 @@ grammar Javamm;
     package pt.up.fe.comp2024;
 }
 
+// possible ways to extend the grammar:
+// 1. add constructors to the classes
+// 2. allow other types of arrays and varargs
+
 
 
 EQUALS : '=';
@@ -135,7 +139,11 @@ stmt
 
 expr
     : LPAREN expr RPAREN #ParenExpr
-    | op=NOT expr #UnaryExpr
+    | value=INTEGER #IntegerLiteral
+    | TRUE #TrueLiteral
+    | FALSE #FalseLiteral
+    | name=ID #VarRefExpr
+    | THIS #ThisLiteral
     | expr LBRACK expr RBRACK #ArrayAccessExpr
     | expr PERIOD LENGTH #ArrayLengthExpr
     | expr PERIOD name=ID LPAREN (expr (COMMA expr)*)? RPAREN #MethodCallExpr
@@ -144,11 +152,7 @@ expr
     | LBRACK (expr (COMMA expr)*)? RBRACK #ArrayCreationExpr
     | expr op = (MUL | DIV) expr #BinaryExpr
     | expr op = (ADD | SUB) expr #BinaryExpr
+    | op=NOT expr #UnaryExpr
     | expr op =LESS expr #BinaryExpr
     | expr op=AND expr #BinaryExpr
-    | value=INTEGER #IntegerLiteral
-    | TRUE #TrueLiteral
-    | FALSE #FalseLiteral
-    | name=ID #VarRefExpr
-    | THIS #ThisLiteral
     ;

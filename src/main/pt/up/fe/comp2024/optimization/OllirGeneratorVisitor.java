@@ -83,7 +83,12 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         code.append("import ");
 
-        for (var packageNode : node.getChildren()){
+        var names = node.getChildren();
+        for (int i = 0 ; i< names.size(); i++){
+            if (i != 0){
+                code.append(".");
+            }
+            var packageNode = names.get(i);
             var name = packageNode.get("name");
             code.append(name);
         }
@@ -99,6 +104,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         //var lhs = exprVisitor.visit(node.getJmmChild(0));  // the left part is an ID not an Expr
 
         var variableName = node.get("name");
+
+        // add to the child node the expected type of the child Expr
+
         var rhs = exprVisitor.visit(node.getJmmChild(0));
 
         StringBuilder code = new StringBuilder();

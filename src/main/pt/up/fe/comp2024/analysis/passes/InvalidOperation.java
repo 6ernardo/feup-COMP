@@ -47,6 +47,9 @@ public class InvalidOperation extends AnalysisVisitor {
 
         // check if the type of operation is valid
         if ( (operatorType.equals(leftType) || leftType == null) && (operatorType.equals(rightType) ||rightType == null) ) {
+            // add types to nodes
+            binaryExpr.putObject("leftType", leftType);
+            binaryExpr.putObject("rightType", rightType);
             return null;
         }
 

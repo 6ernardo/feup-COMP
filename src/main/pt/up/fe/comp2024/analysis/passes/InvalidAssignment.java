@@ -29,34 +29,39 @@ public class InvalidAssignment extends AnalysisVisitor {
         return null;
     }
 
+    private boolean isUpcasting(Type assignType, Type childType, SymbolTable table) {
+        String currentClass = table.getClassName();
+        String superClass = table.getSuper();
+        if (superClass != null){ // there is a super class
+            return assignType.getName().equals(superClass) && childType.getName().equals(currentClass);
+        }
+        return false;
+    }
+
     private Void visitAssignStmt(JmmNode assignStmt, SymbolTable table) {
         SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
 
+        // cases:
+        // 1. the type of both sides is the same -> valid
+        // 2. the type of the right side is the current class and the type of the left side is the parent class -> valid
+        // 3. the type of the right side is unknown -> invalid
+        // 4. unknown case of upcasting where the assign type and child type don't match -> valid
+
+        // for 4. we just check if the assign type isnt a primitive type because we can't upcast primitive types? and
+        // if the child type is an import
+
         Type assignType = TypeUtils.getAssignStmtType(assignStmt, table);
-        Type childType = TypeUtils.getExprType(assignStmt.getChildren().get(0), table);
+        JmmNode child = assignStmt.getChildren().get(0);
+        Type childType = TypeUtils.getExprType(child, table);
 
-        if (assignType.equals(childType)) {
-            return null;
-        }
 
-        // check if : rhs type is the current class and lhs type is the parent class
-
-        // first get superclass
-        String superClass = table.getSuper();
-        // get current class
-        String currentClass = table.getClassName();
-
-        if (superClass != null) {
-            // check if the assignType is the superClass
-            if (assignType.getName().equals(superClass) && childType.getName().equals(currentClass)) {
-                // we have a case of upcasting
-                return null;
-            }
-        }
-
-        // if both types are imports then we can't check
-        if (table.getImports().stream().anyMatch(imported -> imported.equals(assignType.getName())) &&
-                table.getImports().stream().anyMatch(imported -> imported.equals(childType.getName()))) {
+        if (childType == null ||
+                assignType.equals(childType) ||
+                isUpcasting(assignType, childType, table) ||
+                (!TypeUtils.isPrimitive(assignType) && TypeUtils.isImport(childType.getName(), table))) {
+            // add types to the nodes all equal to the assign type
+            assignStmt.putObject("type", assignType);
+            child.putObject("type", assignType);
             return null;
         }
 

@@ -6,6 +6,7 @@ import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static pt.up.fe.comp2024.ast.Kind.METHOD_DECL;
@@ -267,5 +268,9 @@ public class TypeUtils {
             }
         }
         return false;
+    }
+
+    public static boolean isPrimitive(Type assignType) {
+        return assignType.getName().equals(INT_TYPE_NAME) || assignType.getName().equals(BOOLEAN_TYPE_NAME);
     }
 }
