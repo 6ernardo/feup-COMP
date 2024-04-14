@@ -140,8 +140,8 @@ stmt
 expr
     : LPAREN expr RPAREN #ParenExpr
     | value=INTEGER #IntegerLiteral
-    | TRUE #TrueLiteral
-    | FALSE #FalseLiteral
+    | name=TRUE #BoolLiteral
+    | name=FALSE #BoolLiteral
     | name=ID #VarRefExpr
     | THIS #ThisLiteral
     | expr LBRACK expr RBRACK #ArrayAccessExpr

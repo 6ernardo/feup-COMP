@@ -123,7 +123,7 @@ public class TypeUtils {
             case VAR_REF_EXPR -> getVarExprType(expr, table);
             case INTEGER_LITERAL, ARRAY_LENGTH_EXPR -> new Type(INT_TYPE_NAME, false);
             case PAREN_EXPR -> getExprType(expr.getChild(0), table);
-            case UNARY_EXPR, TRUE_LITERAL, FALSE_LITERAL -> new Type(BOOLEAN_TYPE_NAME, false);
+            case UNARY_EXPR, BOOL_LITERAL -> new Type(BOOLEAN_TYPE_NAME, false);
             case ARRAY_ACCESS_EXPR -> getArrayElementType(expr, table);
             case METHOD_CALL_EXPR -> getMethodReturnType(expr, table);
             case NEW_EXPR -> new Type(expr.get("name"), false);

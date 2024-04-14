@@ -37,6 +37,12 @@ public class OllirTest {
         testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileAssignment.jmm", this::compileAssignment);
     }
 
+    // added this test
+    @Test
+    public void compileMisc(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileMisc.jmm", this::compileMisc);
+    }
+
     public static void testJmmCompilation(String resource, Consumer<ClassUnit> ollirTester, String executionOutput) {
 
         // If AstToJasmin pipeline, generate Jasmin
@@ -70,6 +76,10 @@ public class OllirTest {
 
     public static void testJmmCompilation(String resource, Consumer<ClassUnit> ollirTester) {
         testJmmCompilation(resource, ollirTester, null);
+    }
+
+    public void compileMisc(ClassUnit classUnit){
+
     }
 
     public void compileBasic(ClassUnit classUnit) {
