@@ -162,9 +162,9 @@ public class JasminGenerator {
 
             code.append(instCode);
 
-            if(inst.getInstType() == InstructionType.CALL && ((CallInstruction) inst).getReturnType().getTypeOfElement() != ElementType.VOID){
-                code.append("pop");
-            }
+            //if(inst.getInstType() == InstructionType.CALL && ((CallInstruction) inst).getReturnType().getTypeOfElement() == ElementType.VOID){
+            //    code.append("pop").append(NL);
+            //}
         }
 
         code.append(".end method\n");
@@ -235,7 +235,19 @@ public class JasminGenerator {
     private String generateOperand(Operand operand) {
         // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
-        return "iload " + reg + NL;
+
+        switch (operand.getType().getTypeOfElement()) {
+            case THIS -> {
+                return "aload_0" + NL;
+            }
+            case STRING, ARRAYREF, OBJECTREF -> {
+                return "aload " + reg + NL;
+            }
+            case BOOLEAN, INT32 -> {
+                return "iload " + reg + NL;
+            }
+            default -> throw new NotImplementedException(operand.getType().getTypeOfElement().toString());
+        }
     }
 
     private String generateBinaryOp(BinaryOpInstruction binaryOp) {
@@ -263,7 +275,8 @@ public class JasminGenerator {
         var returnOperand = returnInst.getOperand();
 
         if (returnOperand == null) {
-            return "return" + NL;
+
+            return NL + "areturn" + NL;
         }
         // Generate code for the return value
         code.append(generators.apply(returnOperand));
@@ -355,6 +368,7 @@ public class JasminGenerator {
             var name = ((ClassType) callInstruction.getCaller().getType()).getName();
             var invoke = callInstruction.getInvocationType().name() + " " + name + "/<init>(" + args + ")V";
             code.append(load).append(NL).append(invoke).append(NL);
+            code.append("pop").append(NL); // always pops the return value cause it's a constructor
         }
         else if(callInstruction.getInvocationType() == CallType.invokevirtual){
             var load = loadVariable(callInstruction.getCaller());
@@ -372,6 +386,9 @@ public class JasminGenerator {
             var name = ((ClassType) callInstruction.getCaller().getType()).getName() + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
             var invoke = callInstruction.getInvocationType().name() + " " + name + "(" + args + ")" + getTypeSignature(callInstruction.getReturnType());
             code.append(load).append(NL).append(loads).append(invoke).append(NL);
+
+
+
         }
         else if(callInstruction.getInvocationType() == CallType.invokestatic) {
 
@@ -388,6 +405,7 @@ public class JasminGenerator {
             var name = ((Operand) callInstruction.getCaller()).getName() + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
             var invoke = callInstruction.getInvocationType().name() + " " + name + "(" + args + ")V";
             code.append(loads).append(invoke).append(NL);
+
         }
 
         //outros???
