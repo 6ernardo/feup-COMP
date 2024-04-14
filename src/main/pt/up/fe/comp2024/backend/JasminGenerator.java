@@ -276,7 +276,7 @@ public class JasminGenerator {
 
         if (returnOperand == null) {
 
-            return NL + "areturn" + NL;
+            return NL + "return" + NL;
         }
         // Generate code for the return value
         code.append(generators.apply(returnOperand));
