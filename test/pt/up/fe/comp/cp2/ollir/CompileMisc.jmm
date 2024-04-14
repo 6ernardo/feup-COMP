@@ -1,4 +1,6 @@
-class CompileMethodInvocation {
+import io;
+import Extension;
+class Misc extends Extension{
 
     int exampleField;
 
@@ -11,6 +13,9 @@ class CompileMethodInvocation {
 
         int tempInt;
         boolean tempBool;
+        Misc exampleMisc;
+        IO exampleMisc;
+        Extension exampleEx;
 
         exampleLocal = 1;
         tempInt = exampleLocal;
@@ -23,6 +28,28 @@ class CompileMethodInvocation {
 
         tempInt = exampleField + exampleLocal;
 
+        exampleMisc = io.printMisc(new Misc());
+
+        exampleEx = exampleMisc;
+
         return 0;
     }
+
+    public int bar(){
+        Misc miscVar;
+        int intVar;
+        boolean boolVar;
+        io ioVar;
+
+        miscVar = new Misc();
+        ioVar = new io();
+
+
+        intVar = miscVar.foo(true);
+        boolVar = ioVar.foo(false);
+
+        return intVar;
+    }
+
+
 }
