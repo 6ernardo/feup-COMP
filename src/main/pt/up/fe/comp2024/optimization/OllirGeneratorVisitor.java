@@ -272,14 +272,11 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         code.append(table.getClassName());
 
-        code.append(SPACE);
-        code.append("extends");
-        code.append(SPACE);
-
         if (table.getSuper() != null) {
+            code.append(SPACE);
+            code.append("extends");
+            code.append(SPACE);
             code.append(table.getSuper());
-        }else{
-            code.append("Object");
         }
 
         code.append(L_BRACKET);
