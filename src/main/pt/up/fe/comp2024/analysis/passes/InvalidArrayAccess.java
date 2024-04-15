@@ -53,7 +53,7 @@ public class InvalidArrayAccess extends AnalysisVisitor {
         }
 
         var IntType = new Type(TypeUtils.getIntTypeName(),false);
-        if (!indexType.equals(IntType)){
+        if (indexType == null || !indexType.equals(IntType)){
             // Create error report
             var message = String.format("Array access index is not an integer.");
             addReport(Report.newError(
