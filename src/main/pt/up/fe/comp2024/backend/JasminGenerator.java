@@ -261,6 +261,8 @@ public class JasminGenerator {
         var op = switch (binaryOp.getOperation().getOpType()) {
             case ADD -> "iadd";
             case MUL -> "imul";
+            case SUB -> "isub";
+            case DIV -> "idiv";
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
         };
 
@@ -327,12 +329,12 @@ public class JasminGenerator {
     private String generatePutFields(PutFieldInstruction putFieldInstruction) {
         var code = new StringBuilder();
 
-        code.append("aload_0").append(NL);
-        var bipush = "bipush " + ((LiteralElement) putFieldInstruction.getValue()).getLiteral();
+        var load1 = loadVariable(putFieldInstruction.getObject());
+        var load2 = loadVariable(putFieldInstruction.getValue());
         var class_name = putFieldInstruction.getObject().getName().equals("this") ? ollirResult.getOllirClass().getClassName() : putFieldInstruction.getObject().getName();
         var putfield = "putfield " + class_name + "/" + putFieldInstruction.getField().getName() + " " + getTypeSignature(putFieldInstruction.getField().getType());
 
-        code.append(bipush).append(NL).append(putfield).append(NL).append(NL);
+        code.append(load1).append(NL).append(load2).append(NL).append(putfield).append(NL).append(NL);
 
         return code.toString();
     }
@@ -340,11 +342,11 @@ public class JasminGenerator {
     private String generateGetFields(GetFieldInstruction getFieldInstruction) {
         var code = new StringBuilder();
 
-        code.append("aload_0").append(NL);
+        var load = loadVariable(getFieldInstruction.getObject());
         var class_name = getFieldInstruction.getObject().getName().equals("this") ? ollirResult.getOllirClass().getClassName() : getFieldInstruction.getObject().getName();
         var getfield = "getfield " + class_name + "/" + getFieldInstruction.getField().getName() + " " + getTypeSignature(getFieldInstruction.getField().getType());
 
-        code.append(getfield).append(NL).append(NL);
+        code.append(load).append(NL).append(getfield).append(NL).append(NL);
         return code.toString();
     }
 
