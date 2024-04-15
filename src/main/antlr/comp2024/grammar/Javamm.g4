@@ -83,9 +83,7 @@ classDecl
     ;
 
 varDecl
-    : type name=ID SEMI #VariableDecl
-    | type name=MAIN SEMI #VariableDecl
-    | type name=LENGTH SEMI #VariableDecl
+    : type name=(ID | MAIN | LENGTH) SEMI #VariableDecl
     ;
 
 type locals[boolean isArray=false, boolean isVarArgs=false]
@@ -125,9 +123,7 @@ mainReturnType locals[boolean isArray=false, boolean isVarArgs=false]
     : name= VOID;
 
 param
-    : type name=ID
-    | type name=MAIN
-    | type name=LENGTH
+    : type name=(ID | MAIN | LENGTH)
     ;
 
 stmt
@@ -149,7 +145,7 @@ expr
     | LBRACK (expr (COMMA expr)*)? RBRACK #ArrayCreationExpr
     | expr LBRACK expr RBRACK #ArrayAccessExpr
     | expr PERIOD LENGTH #ArrayLengthExpr
-    | expr PERIOD name=ID LPAREN (expr (COMMA expr)*)? RPAREN #MethodCallExpr
+    | expr PERIOD name=(ID | LENGTH | MAIN) LPAREN (expr (COMMA expr)*)? RPAREN #MethodCallExpr
     | NEW name=INT LBRACK expr RBRACK #NewExpr
     | NEW name=ID LPAREN RPAREN #NewExpr
     | expr op = (MUL | DIV) expr #BinaryExpr
