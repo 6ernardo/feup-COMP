@@ -19,7 +19,7 @@ public class JmmAnalysisImpl implements JmmAnalysis {
     public JmmAnalysisImpl() {
 
     this.analysisPasses = List.of(
-            //new DuplicateNames(),
+            new DuplicateNames(),
             new UndeclaredVariable(),
             new InvalidOperation(),
             new InvalidAssignment(),
