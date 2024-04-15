@@ -1,0 +1,18 @@
+
+import three;
+import three;
+
+class MyTest {
+
+    public static void main(String[] args) {
+
+    }
+
+    public int foo() {
+        int a;
+        boolean b;
+
+        return 0;
+    }
+
+}

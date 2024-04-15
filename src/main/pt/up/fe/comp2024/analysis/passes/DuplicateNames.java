@@ -130,19 +130,18 @@ public class DuplicateNames extends AnalysisVisitor {
         var pathString = path.toString();
 
         // check if the class is already imported
-        if (importedClasses.contains(className)) {
-            // check if the path is the same
-            if (!importPaths.get(importedClasses.indexOf(className)).equals(pathString)) {
-                // create error report
-                var message = "Duplicate import name: " + className;
-                addReport(Report.newError(
-                        Stage.SEMANTIC,
-                        NodeUtils.getLine(importDecl),
-                        NodeUtils.getColumn(importDecl),
-                        message,
-                        null)
-                );
-            }
+        if (importedClasses.contains(className) || importPaths.contains(pathString)){
+
+            // create error report
+            var message = "Duplicate import name: " + className;
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(importDecl),
+                    NodeUtils.getColumn(importDecl),
+                    message,
+                    null)
+            );
+
         }else {
             importedClasses.add(className);
             importPaths.add(pathString);
