@@ -30,7 +30,8 @@ public class JmmAnalysisImpl implements JmmAnalysis {
             new InvalidThisExpr(),
             new UndefinedMethod(),
             new IncompatibleReturn(),
-            new IncompatibleArguments());
+            new IncompatibleArguments(),
+            new Miscellaneous());
 
     }
     @Override

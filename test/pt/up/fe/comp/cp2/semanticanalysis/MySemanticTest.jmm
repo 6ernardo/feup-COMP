@@ -12,7 +12,7 @@ class MyTest {
         boolean b;
         int length;
 
-        length = 0;
+        length = intArray.length;
 
         return 0;
     }
