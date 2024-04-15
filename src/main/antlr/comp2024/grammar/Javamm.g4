@@ -85,6 +85,7 @@ classDecl
 varDecl
     : type name=ID SEMI #VariableDecl
     | type name=MAIN SEMI #VariableDecl
+    | type name=LENGTH SEMI #VariableDecl
     ;
 
 type locals[boolean isArray=false, boolean isVarArgs=false]
@@ -126,6 +127,7 @@ mainReturnType locals[boolean isArray=false, boolean isVarArgs=false]
 param
     : type name=ID
     | type name=MAIN
+    | type name=LENGTH
     ;
 
 stmt
