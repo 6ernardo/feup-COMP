@@ -73,6 +73,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
         if (currentClass.equals(varRefName)) {
             varRefExpr.putObject("type", currentClass);
             varRefExpr.putObject("isStatic", true);
+            varRefExpr.putObject("isField",false);
             return null;
         }
 

@@ -137,8 +137,7 @@ stmt
 expr
     : LPAREN expr RPAREN #ParenExpr
     | value=INTEGER #IntegerLiteral
-    | name=TRUE #BoolLiteral
-    | name=FALSE #BoolLiteral
+    | name=(TRUE |FALSE) #BoolLiteral
     | name=(ID|MAIN) #VarRefExpr
     | THIS #ThisLiteral
     | LBRACK (expr (COMMA expr)*)? RBRACK #ArrayCreationExpr

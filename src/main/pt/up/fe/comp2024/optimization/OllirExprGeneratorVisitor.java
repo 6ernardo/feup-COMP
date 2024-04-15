@@ -36,8 +36,13 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(THIS_LITERAL, this::visitThis);
         addVisit(NEW_EXPR, this::visitNewExpr);
         addVisit(BOOL_LITERAL, this::visitBool);
+        addVisit(PAREN_EXPR, this::visitParenExpr);
 
         setDefaultVisit(this::defaultVisit);
+    }
+
+    private OllirExprResult visitParenExpr(JmmNode node, Void unused) {
+        return visit(node.getJmmChild(0));
     }
 
     private OllirExprResult visitBool(JmmNode node, Void unused) {
