@@ -148,7 +148,7 @@ public class TypeUtils {
     private static Type getArrayElementType(JmmNode arrayAccessExpr, SymbolTable table) {
         var type = getExprType(arrayAccessExpr.getChild(0), table);
         if (!type.isArray()){
-            throw new RuntimeException("Trying to access an array element from a non-array type");
+            return null;
         }
         return new Type(type.getName(), false);
     }

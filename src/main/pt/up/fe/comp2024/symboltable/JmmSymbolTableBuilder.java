@@ -42,10 +42,6 @@ public class JmmSymbolTableBuilder {
             var lastNameNode = impNames.get(impNames.size() - 1);
 
             var lastName = lastNameNode.get("name");
-            // see if there is already an import with the same name
-            if (imports.contains(lastName)) {
-                throw new RuntimeException("More than one import with the same name: " + lastName);
-            }
 
             imports.add(lastName);
         }
@@ -58,14 +54,6 @@ public class JmmSymbolTableBuilder {
 
         for (var field : classDecl.getChildren(VAR_DECL)) {
             var varName = field.get("name");
-
-            if (fields.stream().anyMatch(symbol -> symbol.getName().equals(varName))) {
-                throw new RuntimeException("Field with the same name already exists: " + varName);
-            }
-
-            if (field.getChild(0).get("isVarArgs").equals("true")) {
-                throw new RuntimeException("Field cannot be a varargs: " + varName);
-            }
 
             var varType = new Type(field.getChild(0).get("name"),
                     field.getChild(0).get("isArray").equals("true"));
@@ -80,9 +68,6 @@ public class JmmSymbolTableBuilder {
         for ( var method : classDecl.getChildren(METHOD_DECL)){
             var methodName = method.get("name");
 
-            if (methods.contains(methodName)) {
-                throw new RuntimeException("More than one method with the same name");
-            }
             methods.add(methodName);
         }
         return methods;
@@ -93,10 +78,6 @@ public class JmmSymbolTableBuilder {
 
         for (var method : classDecl.getChildren(METHOD_DECL)) {
             var name = method.get("name");
-
-            if (method.getJmmChild(0).get("isVarArgs").equals("true")) {
-                throw new RuntimeException("Return type cannot be a varargs");
-            }
 
             var returnType = new Type(method.getJmmChild(0).get("name"),
                     method.getJmmChild(0).get("isArray").equals("true"));
@@ -125,10 +106,6 @@ public class JmmSymbolTableBuilder {
 
             for (var param : method.getChildren(PARAM)) {
                 var paramName = param.get("name");                              // Get the parameter name
-
-                if (paramsList.stream().anyMatch(symbol -> symbol.getName().equals(paramName))) {
-                    throw new RuntimeException("Parameter with the same name already exists: " + paramName);
-                }
 
                 var paramTypeName = param.getJmmChild(0).get("name");
                 var isParamTypeArray = param.getJmmChild(0).get("isArray").equals("true");
@@ -162,12 +139,19 @@ public class JmmSymbolTableBuilder {
     private static List<Symbol> getLocalsList(JmmNode methodDecl) {
         // TODO: Simple implementation that needs to be expanded
 
-        return methodDecl.getChildren(VAR_DECL).stream()
-                .map(varDecl -> new Symbol(
-                        new Type(varDecl.getJmmChild(0).get("name"),
-                                varDecl.getJmmChild(0).get("isArray").equals("true"))
-                        , varDecl.get("name")))
-                .toList();
+        List<Symbol> result = new ArrayList<>();
+
+        var var_decls = methodDecl.getChildren(VAR_DECL);
+
+        for (var varDecl : var_decls) {
+            var type = new Type(varDecl.getJmmChild(0).get("name"),
+                    varDecl.getJmmChild(0).get("isArray").equals("true"));
+            type.putObject("isVarArgs", varDecl.getJmmChild(0).get("isVarArgs").equals("true"));
+            var name = varDecl.get("name");
+            result.add(new Symbol(type, name));
+        }
+
+        return result;
     }
 
 }

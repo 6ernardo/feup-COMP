@@ -33,13 +33,66 @@ public class IncompatibleArguments extends AnalysisVisitor {
             return null;
         }
 
-        // Check all the params
-        for (int i = 1; i < methodCall.getChildren().size(); i++) {
-            var argNode = methodCall.getChildren().get(i);
-            Type argType = TypeUtils.getVarExprType(argNode, table);
-            var paramType = TypeUtils.getParamType(methodCall, i - 1, table);
+        // check if the number of parameters exceeds the number of arguments
+        var parameters = table.getParameters(methodCall.get("name"));
+        var arguments = methodCall.getChildren();
 
-            if (!paramType.getName().equals(argType.getName())) {
+        if (arguments.size()-1 < parameters.size()){ // check if there were too little arguments
+            var message = "Method " + methodCall.get("name") + " requires " + parameters.size() +
+                    " arguments but only " + (arguments.size()-1) + " were provided.";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(methodCall),
+                    NodeUtils.getColumn(methodCall),
+                    message,
+                    null)
+            );
+            return null;
+        }
+
+        boolean excessArgs = false;
+        if (arguments.size()-1 > parameters.size()){
+            if (!(boolean) parameters.get(parameters.size()-1).getType().getObject("isVarArgs")){
+                // check if there were too many arguments
+                var message = "Method " + methodCall.get("name") + " requires only " + parameters.size() +
+                        " arguments but " + (arguments.size() - 1) + " were provided.";
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(methodCall),
+                        NodeUtils.getColumn(methodCall),
+                        message,
+                        null)
+                );
+                return null;
+            }else{
+                excessArgs = true;
+            }
+        }
+
+        // Check all the params
+        for (int i = 1; i < arguments.size(); i++) {
+            var argNode = arguments.get(i);
+            Type argType = TypeUtils.getVarExprType(argNode, table);
+
+            if (i-1 >= parameters.size()-1 && excessArgs){ // all the excess arguments plus one
+                var paramType = parameters.get(parameters.size()-1).getType();
+                var paramElementType = new Type(paramType.getName(), false);
+                if (!paramElementType.equals(argType)) {
+                    // Create error report
+                    var message = "Incompatible argument type. Expected " + methodCall + " but got " + methodCall;
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(methodCall),
+                            NodeUtils.getColumn(methodCall),
+                            message,
+                            null)
+                    );
+                }
+                continue;
+            }
+            var paramType = parameters.get(i-1).getType();
+
+            if (!paramType.equals(argType)) {
                 // Create error report
                 var message = "Incompatible argument type. Expected " + methodCall + " but got " + methodCall;
                 addReport(Report.newError(
