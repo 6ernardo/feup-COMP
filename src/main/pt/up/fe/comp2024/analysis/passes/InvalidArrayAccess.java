@@ -1,6 +1,7 @@
 package pt.up.fe.comp2024.analysis.passes;
 
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
@@ -51,7 +52,8 @@ public class InvalidArrayAccess extends AnalysisVisitor {
             );
         }
 
-        if (!indexType.getName().equals(TypeUtils.getIntTypeName())) {
+        var IntType = new Type(TypeUtils.getIntTypeName(),false);
+        if (!indexType.equals(IntType)){
             // Create error report
             var message = String.format("Array access index is not an integer.");
             addReport(Report.newError(

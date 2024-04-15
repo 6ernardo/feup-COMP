@@ -144,12 +144,12 @@ expr
     | name=FALSE #BoolLiteral
     | name=ID #VarRefExpr
     | THIS #ThisLiteral
+    | LBRACK (expr (COMMA expr)*)? RBRACK #ArrayCreationExpr
     | expr LBRACK expr RBRACK #ArrayAccessExpr
     | expr PERIOD LENGTH #ArrayLengthExpr
     | expr PERIOD name=ID LPAREN (expr (COMMA expr)*)? RPAREN #MethodCallExpr
     | NEW name=INT LBRACK expr RBRACK #NewExpr
     | NEW name=ID LPAREN RPAREN #NewExpr
-    | LBRACK (expr (COMMA expr)*)? RBRACK #ArrayCreationExpr
     | expr op = (MUL | DIV) expr #BinaryExpr
     | expr op = (ADD | SUB) expr #BinaryExpr
     | op=NOT expr #UnaryExpr

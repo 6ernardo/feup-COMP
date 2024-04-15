@@ -109,7 +109,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         }
 
         computation.append(targetResult.getCode()).append(", \"").append(nameOfTheFunction).append("\"")
-                .append(paramCodes.toString()).append(")").append(type).append(END_STMT);
+                .append(paramCodes).append(")").append(type).append(END_STMT);
 
         return new OllirExprResult(code, computation.toString());
     }
