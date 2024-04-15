@@ -18,9 +18,20 @@ public class JmmAnalysisImpl implements JmmAnalysis {
     private final List<AnalysisPass> analysisPasses;
     public JmmAnalysisImpl() {
 
-    this.analysisPasses = List.of(new UndeclaredVariable(), new InvalidOperation(), new InvalidAssignment(),
-                new InvalidArrayAccess(), new InvalidConditionExpr(), new InvalidArrayInit(),
-                new InvalidVarArgsType(), new InvalidThisExpr(), new UndefinedMethod(), new IncompatibleReturn(), new IncompatibleArguments());
+    this.analysisPasses = List.of(
+            new DuplicateNames(),
+            new UndeclaredVariable(),
+            new InvalidOperation(),
+            new InvalidAssignment(),
+            new InvalidArrayAccess(),
+            new InvalidConditionExpr(),
+            new InvalidArrayInit(),
+            new InvalidVarArgsType(),
+            new InvalidThisExpr(),
+            new UndefinedMethod(),
+            new IncompatibleReturn(),
+            new IncompatibleArguments(),
+            new Miscellaneous());
 
     }
     @Override

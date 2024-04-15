@@ -42,7 +42,6 @@ STATIC : 'static' ;
 ELLIPSIS : '...' ;
 MAIN : 'main' ;
 BOOLEAN : 'boolean' ;
-LENGTH : 'length' ;
 NEW : 'new' ;
 THIS : 'this' ;
 TRUE : 'true' ;
@@ -83,8 +82,7 @@ classDecl
     ;
 
 varDecl
-    : type name=ID SEMI #VariableDecl
-    | type name=MAIN SEMI #VariableDecl
+    : type name=(ID | MAIN) SEMI #VariableDecl
     ;
 
 type locals[boolean isArray=false, boolean isVarArgs=false]
@@ -124,8 +122,7 @@ mainReturnType locals[boolean isArray=false, boolean isVarArgs=false]
     : name= VOID;
 
 param
-    : type name=ID
-    | type name=MAIN
+    : type name=(ID | MAIN)
     ;
 
 stmt
@@ -133,23 +130,22 @@ stmt
     | IF LPAREN expr RPAREN stmt ELSE stmt #IfStmt
     | WHILE LPAREN expr RPAREN stmt #WhileStmt
     | expr SEMI #ExprStmt
-    | name=ID EQUALS expr SEMI #AssignStmt
-    | name=ID LBRACK expr RBRACK EQUALS expr SEMI #ArrayAssignStmt
+    | name=(ID | MAIN) EQUALS expr SEMI #AssignStmt
+    | name=(ID | MAIN) LBRACK expr RBRACK EQUALS expr SEMI #ArrayAssignStmt
     ;
 
 expr
     : LPAREN expr RPAREN #ParenExpr
     | value=INTEGER #IntegerLiteral
-    | TRUE #TrueLiteral
-    | FALSE #FalseLiteral
-    | name=ID #VarRefExpr
+    | name=(TRUE |FALSE) #BoolLiteral
+    | name=(ID|MAIN) #VarRefExpr
     | THIS #ThisLiteral
+    | LBRACK (expr (COMMA expr)*)? RBRACK #ArrayCreationExpr
     | expr LBRACK expr RBRACK #ArrayAccessExpr
-    | expr PERIOD LENGTH #ArrayLengthExpr
-    | expr PERIOD name=ID LPAREN (expr (COMMA expr)*)? RPAREN #MethodCallExpr
+    | expr PERIOD name=(ID | MAIN) LPAREN (expr (COMMA expr)*)? RPAREN #MethodCallExpr
     | NEW name=INT LBRACK expr RBRACK #NewExpr
     | NEW name=ID LPAREN RPAREN #NewExpr
-    | LBRACK (expr (COMMA expr)*)? RBRACK #ArrayCreationExpr
+    | expr PERIOD name=ID #ArrayLengthExpr
     | expr op = (MUL | DIV) expr #BinaryExpr
     | expr op = (ADD | SUB) expr #BinaryExpr
     | op=NOT expr #UnaryExpr

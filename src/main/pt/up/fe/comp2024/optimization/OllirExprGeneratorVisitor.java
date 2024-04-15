@@ -35,8 +35,25 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(METHOD_CALL_EXPR, this::visitMethodCall);
         addVisit(THIS_LITERAL, this::visitThis);
         addVisit(NEW_EXPR, this::visitNewExpr);
+        addVisit(BOOL_LITERAL, this::visitBool);
+        addVisit(PAREN_EXPR, this::visitParenExpr);
 
         setDefaultVisit(this::defaultVisit);
+    }
+
+    private OllirExprResult visitParenExpr(JmmNode node, Void unused) {
+        return visit(node.getJmmChild(0));
+    }
+
+    private OllirExprResult visitBool(JmmNode node, Void unused) {
+        var boolValue = node.get("name");
+        String code;
+        if (boolValue.equals("true")){
+            code = "1.bool";
+        }else{
+            code = "0.bool";
+        }
+        return new OllirExprResult(code);
     }
 
 
@@ -97,7 +114,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         }
 
         computation.append(targetResult.getCode()).append(", \"").append(nameOfTheFunction).append("\"")
-                .append(paramCodes.toString()).append(")").append(type).append(END_STMT);
+                .append(paramCodes).append(")").append(type).append(END_STMT);
 
         return new OllirExprResult(code, computation.toString());
     }
@@ -173,9 +190,22 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         Type type = TypeUtils.getExprType(node, table); // get the type of the variable
         String ollirType = OptUtils.toOllirType(type); // convert it to ollir type
 
-        String code = id + ollirType; // create the code which is the name of the variable + its type
+        String var = id + ollirType; // create the code which is the name of the variable + its type
 
-        return new OllirExprResult(code);
+        if (isVarRefAField(node)){
+            // tmp1 := getfield(this,[nameOfField].[typeOfField]).typeOfField,
+
+            var tmpVar = OptUtils.getTemp() + ollirType;
+            String computation = tmpVar +" :="+ollirType +" getfield(this," + var + ")" + ollirType + END_STMT;
+
+            return new OllirExprResult(tmpVar, computation);
+        }else{
+            return new OllirExprResult(var);
+        }
+    }
+
+    private boolean isVarRefAField(JmmNode node){
+        return (boolean) node.getObject("isField");
     }
 
     /**

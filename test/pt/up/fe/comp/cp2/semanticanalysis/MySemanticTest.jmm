@@ -1,0 +1,20 @@
+
+import three;
+
+class MyTest {
+
+    public static void main(String[] args) {
+
+    }
+
+    public int foo(int[] intArray) {
+        int a;
+        boolean b;
+        int length;
+
+        length = intArray.length;
+
+        return 0;
+    }
+
+}

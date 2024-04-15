@@ -35,10 +35,11 @@ public class UndeclaredVariable extends AnalysisVisitor {
         // Check if exists a parameter or variable declaration with the same name as the variable reference
         var varRefName = varRefExpr.get("name");
 
-        // Var is a field, return
-        if (table.getFields().stream()
-                .anyMatch(param -> param.getName().equals(varRefName))) {
+        // Var is a declared variable, return
+        if (table.getLocalVariables(currentMethod).stream()
+                .anyMatch(varDecl -> varDecl.getName().equals(varRefName))) {
             varRefExpr.putObject("isStatic", false);
+            varRefExpr.putObject("isField",false);
             return null;
         }
 
@@ -46,13 +47,15 @@ public class UndeclaredVariable extends AnalysisVisitor {
         if (table.getParameters(currentMethod).stream()
                 .anyMatch(param -> param.getName().equals(varRefName))) {
             varRefExpr.putObject("isStatic", false);
+            varRefExpr.putObject("isField",false);
             return null;
         }
 
-        // Var is a declared variable, return
-        if (table.getLocalVariables(currentMethod).stream()
-                .anyMatch(varDecl -> varDecl.getName().equals(varRefName))) {
+        // Var is a field, return
+        if (table.getFields().stream()
+                .anyMatch(param -> param.getName().equals(varRefName))) {
             varRefExpr.putObject("isStatic", false);
+            varRefExpr.putObject("isField",true);
             return null;
         }
 
@@ -61,6 +64,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
                 .anyMatch(imported -> imported.equals(varRefName))) {
             varRefExpr.putObject("type", varRefName);
             varRefExpr.putObject("isStatic", true);
+            varRefExpr.putObject("isField",false);
             return null;
         }
 
@@ -69,6 +73,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
         if (currentClass.equals(varRefName)) {
             varRefExpr.putObject("type", currentClass);
             varRefExpr.putObject("isStatic", true);
+            varRefExpr.putObject("isField",false);
             return null;
         }
 

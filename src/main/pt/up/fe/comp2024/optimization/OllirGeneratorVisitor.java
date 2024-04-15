@@ -100,7 +100,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private String visitAssignStmt(JmmNode node, Void unused) {
 
-
         //var lhs = exprVisitor.visit(node.getJmmChild(0));  // the left part is an ID not an Expr
 
         var variableName = node.get("name");
@@ -120,6 +119,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         Type thisType = TypeUtils.getStmtType(node, table);
         String typeString = OptUtils.toOllirType(thisType);
 
+        if (isAssigningField(node)){
+            return "putfield(this, " + variableName + typeString + ", " +  rhs.getCode() + ").V" + END_STMT;
+        }
 
         code.append(variableName);
         code.append(typeString);
@@ -134,6 +136,30 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append(END_STMT);
 
         return code.toString();
+    }
+
+    private boolean isAssigningField(JmmNode node){
+        var methodNode = node.getParent();
+        var methodName = methodNode.get("name");
+        var assignName = node.get("name");
+
+        // check if its a param or local variable first
+
+        if(table.getLocalVariables(methodName).stream().anyMatch(
+                sym -> sym.getName().equals(assignName)
+        )){
+            return false;
+        }
+
+        if(table.getParameters(methodName).stream().anyMatch(
+                sym -> sym.getName().equals(assignName)
+        )){
+            return false;
+        }
+
+        return table.getFields().stream().anyMatch(
+                sym -> sym.getName().equals(assignName)
+        );
     }
 
 
@@ -278,7 +304,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     private String buildConstructor() {
 
         return ".construct " + table.getClassName() + "().V {\n" +
-                "invokespecial(this, \"\").V;\n" +
+                "invokespecial(this, \"<init>\").V;\n" +
                 "}\n";
     }
 
