@@ -1,6 +1,5 @@
 
 import three;
-import three;
 
 class MyTest {
 
@@ -8,9 +7,12 @@ class MyTest {
 
     }
 
-    public int foo() {
+    public int foo(int[] intArray) {
         int a;
         boolean b;
+        int length;
+
+        length = 0;
 
         return 0;
     }

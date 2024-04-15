@@ -131,8 +131,8 @@ stmt
     | IF LPAREN expr RPAREN stmt ELSE stmt #IfStmt
     | WHILE LPAREN expr RPAREN stmt #WhileStmt
     | expr SEMI #ExprStmt
-    | name=ID EQUALS expr SEMI #AssignStmt
-    | name=ID LBRACK expr RBRACK EQUALS expr SEMI #ArrayAssignStmt
+    | name=(ID | MAIN | LENGTH) EQUALS expr SEMI #AssignStmt
+    | name=(ID | MAIN | LENGTH) LBRACK expr RBRACK EQUALS expr SEMI #ArrayAssignStmt
     ;
 
 expr
@@ -140,11 +140,11 @@ expr
     | value=INTEGER #IntegerLiteral
     | name=TRUE #BoolLiteral
     | name=FALSE #BoolLiteral
-    | name=ID #VarRefExpr
+    | name=(ID|MAIN|LENGTH) #VarRefExpr
     | THIS #ThisLiteral
+    | expr PERIOD LENGTH #ArrayLengthExpr
     | LBRACK (expr (COMMA expr)*)? RBRACK #ArrayCreationExpr
     | expr LBRACK expr RBRACK #ArrayAccessExpr
-    | expr PERIOD LENGTH #ArrayLengthExpr
     | expr PERIOD name=(ID | LENGTH | MAIN) LPAREN (expr (COMMA expr)*)? RPAREN #MethodCallExpr
     | NEW name=INT LBRACK expr RBRACK #NewExpr
     | NEW name=ID LPAREN RPAREN #NewExpr
