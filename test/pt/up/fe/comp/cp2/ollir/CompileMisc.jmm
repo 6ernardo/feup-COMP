@@ -1,11 +1,16 @@
+
+
 import io.som;
 class Foo {
 
    public static void main(String[] args) {
       int a;
+      Foo foo;
       a = 10;
 
-      Foo.foo((a +10*50)/7);
+      foo = new Foo();
+
+      foo.somet((a +10*50)/7);
 
    }
 

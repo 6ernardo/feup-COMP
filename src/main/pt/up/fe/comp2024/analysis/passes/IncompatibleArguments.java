@@ -72,7 +72,7 @@ public class IncompatibleArguments extends AnalysisVisitor {
         // Check all the params
         for (int i = 1; i < arguments.size(); i++) {
             var argNode = arguments.get(i);
-            Type argType = TypeUtils.getVarExprType(argNode, table);
+            Type argType = TypeUtils.getExprType(argNode, table);
 
             if (i-1 >= parameters.size()-1 && excessArgs){ // all the excess arguments plus one
                 var paramType = parameters.get(parameters.size()-1).getType();
