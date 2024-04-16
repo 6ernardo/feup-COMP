@@ -1,6 +1,7 @@
 package pt.up.fe.comp2024.analysis.passes;
 
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
@@ -53,7 +54,9 @@ public class Miscellaneous extends AnalysisVisitor {
 
         var typeName = type.get("name");
 
-        if (TypeUtils.isImport(typeName, table) || table.getClassName().equals(typeName)) {
+        if (TypeUtils.isImport(typeName, table) ||
+                table.getClassName().equals(typeName) ||
+                TypeUtils.isPrimitive(new Type(typeName, false))) {
             return null;
         }
 
