@@ -54,7 +54,6 @@ public class InvalidAssignment extends AnalysisVisitor {
         JmmNode child = assignStmt.getChildren().get(0);
         Type childType = TypeUtils.getExprType(child, table);
 
-
         if (childType == null ||
                 assignType.equals(childType) ||
                 isUpcasting(assignType, childType, table) ||

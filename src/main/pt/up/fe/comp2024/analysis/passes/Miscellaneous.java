@@ -20,6 +20,7 @@ public class Miscellaneous extends AnalysisVisitor {
     public void buildVisitor() {
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
         addVisit(Kind.ARRAY_LENGTH_EXPR, this::visitLengthExpr);
+        addVisit(Kind.TYPE, this::visitType);
     }
 
     private Void visitLengthExpr(JmmNode node, SymbolTable table) {
@@ -48,6 +49,26 @@ public class Miscellaneous extends AnalysisVisitor {
     }
 
 
+    private Void visitType(JmmNode type, SymbolTable table) {
+
+        var typeName = type.get("name");
+
+        if (TypeUtils.isImport(typeName, table) || table.getClassName().equals(typeName)) {
+            return null;
+        }
+
+        // Cretae a report
+        String message = "Type " + typeName + " not found in imports or current class.";
+        addReport(Report.newError(
+                Stage.SEMANTIC,
+                NodeUtils.getLine(type),
+                NodeUtils.getColumn(type),
+                message,
+                null)
+        );
+
+        return null;
+    }
 
 
 }

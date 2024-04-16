@@ -1,13 +1,14 @@
+
 class AssignIntToBool {
 
     public static void main(String[] args) {
 
     }
 
-    public boolean foo() {
-        boolean a;
+    public A foo() {
+        A a;
 
-        a = 10;
+        a = new A();
 
         return a;
     }
