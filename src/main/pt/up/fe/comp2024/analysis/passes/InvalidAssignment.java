@@ -22,6 +22,7 @@ public class InvalidAssignment extends AnalysisVisitor {
     public void buildVisitor() {
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
         addVisit(Kind.ASSIGN_STMT, this::visitAssignStmt);
+        addVisit(Kind.ARRAY_ASSIGN_STMT, this::visitArrayAssignStmt);
     }
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
@@ -64,7 +65,6 @@ public class InvalidAssignment extends AnalysisVisitor {
             return null;
         }
 
-
         // Create error report
         String message = "Invalid assignment of variable";
         addReport(Report.newError(
@@ -75,6 +75,44 @@ public class InvalidAssignment extends AnalysisVisitor {
                 null)
         );
 
+
+        return null;
+    }
+
+    private Void visitArrayAssignStmt(JmmNode arrayAssignStmt, SymbolTable table) {
+
+        Type assignType = TypeUtils.getAssignStmtType(arrayAssignStmt, table);
+        JmmNode index = arrayAssignStmt.getChildren().get(0);
+        JmmNode value = arrayAssignStmt.getChildren().get(1);
+        var intType = new Type(TypeUtils.getIntTypeName(), false);
+
+        // Check if index type is correct
+        if (!TypeUtils.getExprType(index, table).equals(intType)) {
+
+            // Create error report
+            String message = "Invalid index type in array assignment";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(arrayAssignStmt),
+                    NodeUtils.getColumn(arrayAssignStmt),
+                    message,
+                    null)
+            );
+        }
+
+        // Check if value type is correct
+        if (!TypeUtils.getExprType(value, table).equals(intType)) {
+
+            // Create error report
+            String message = "Invalid value type in array assignment";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(arrayAssignStmt),
+                    NodeUtils.getColumn(arrayAssignStmt),
+                    message,
+                    null)
+            );
+        }
 
         return null;
     }
