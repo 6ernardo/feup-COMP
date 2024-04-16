@@ -17,6 +17,26 @@ public class InvalidArrayInit extends AnalysisVisitor {
     public void buildVisitor() {
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
         addVisit(Kind.ARRAY_CREATION_EXPR, this::visitArrayCreationExpr);
+        addVisit(Kind.NEW_ARRAY_EXPR, this::visitNewArrayExpr);
+    }
+
+    private Void visitNewArrayExpr(JmmNode node, SymbolTable table) {
+        var arraySize = node.getChild(0);
+        // check if its an int
+        var intType = new Type(TypeUtils.getIntTypeName(),false);
+        var arraySizeType = TypeUtils.getExprType(arraySize, table);
+        if (!intType.equals(arraySizeType)){
+            // Create error report
+            String message = "Invalid array size";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(arraySize),
+                    NodeUtils.getColumn(arraySize),
+                    message,
+                    null)
+            );
+        }
+        return null;
     }
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
@@ -42,6 +62,5 @@ public class InvalidArrayInit extends AnalysisVisitor {
 
         return null;
     }
-
 
 }

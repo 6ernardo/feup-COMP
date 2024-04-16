@@ -1,4 +1,4 @@
-
+import A;
 class AssignIntToBool {
 
     public static void main(String[] args) {
@@ -6,9 +6,9 @@ class AssignIntToBool {
     }
 
     public A foo() {
-        A a;
+        int[] a;
 
-        a = new A();
+        a = new int;
 
         return a;
     }
