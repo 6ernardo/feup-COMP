@@ -14,6 +14,7 @@ public enum Kind {
     METHOD_DECL,
     PARAM,
     ASSIGN_STMT,
+    ARRAY_ASSIGN_STMT,
     RETURN_STMT,
     BINARY_EXPR,
     INTEGER_LITERAL,
