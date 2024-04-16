@@ -125,7 +125,8 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         // else its void
         var parent = node.getParent();
         if (ASSIGN_STMT.check(parent)){
-            return OptUtils.toOllirType(TypeUtils.getAssignStmtType(parent, table));
+            var assignmentType = TypeUtils.getAssignStmtType(parent, table);
+            return OptUtils.toOllirType(assignmentType);
         }
         return ".V";
     }

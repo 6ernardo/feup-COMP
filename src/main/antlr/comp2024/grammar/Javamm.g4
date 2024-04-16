@@ -143,7 +143,7 @@ expr
     | LBRACK (expr (COMMA expr)*)? RBRACK #ArrayCreationExpr
     | expr LBRACK expr RBRACK #ArrayAccessExpr
     | expr PERIOD name=(ID | MAIN) LPAREN (expr (COMMA expr)*)? RPAREN #MethodCallExpr
-    | NEW name=INT LBRACK expr RBRACK #NewExpr
+    | NEW name=INT LBRACK expr RBRACK #NewArrayExpr
     | NEW name=ID LPAREN RPAREN #NewExpr
     | expr PERIOD name=ID #ArrayLengthExpr
     | expr op = (MUL | DIV) expr #BinaryExpr

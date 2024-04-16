@@ -129,10 +129,16 @@ public class TypeUtils {
             case NEW_EXPR -> new Type(expr.get("name"), false);
             case ARRAY_CREATION_EXPR -> getArrayInitType(expr, table);
             case THIS_LITERAL -> getThisType(expr, table);
+            case NEW_ARRAY_EXPR -> getNewArrayExpr(expr,table);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
 
         return type;
+    }
+
+    private static Type getNewArrayExpr(JmmNode expr, SymbolTable table) {
+        var type = expr.get("name");
+        return new Type(type, true);
     }
 
     private static Type getThisType(JmmNode thisLiteral, SymbolTable table) {
