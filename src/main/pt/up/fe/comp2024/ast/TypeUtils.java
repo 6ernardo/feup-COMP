@@ -160,6 +160,7 @@ public class TypeUtils {
     }
 
     private static Type getMethodReturnType(JmmNode methodCallExpr, SymbolTable table) {
+
         var methodName = methodCallExpr.get("name");
         return table.getReturnType(methodName);
     }

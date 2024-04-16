@@ -30,11 +30,36 @@ public class UndefinedMethod extends AnalysisVisitor {
         var objectType = TypeUtils.getExprType(object, table);
 
         if (objectType == null) // unknown type means there is an import involved so we can't check
+        {
+            // Create error report
+            String message = "Unknown type";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(object),
+                    NodeUtils.getColumn(object),
+                    message,
+                    null)
+            );
             return null;
+        }
+
+        if (objectType.isArray()){
+            // Create error report
+            String message = "Cannot call a method on an array";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(object),
+                    NodeUtils.getColumn(object),
+                    message,
+                    null)
+            );
+            return null;
+        }
 
         // check if its an import
         if (table.getImports().stream()
                 .anyMatch(imported -> imported.equals(objectType.getName()))) {
+            methodCall.putObject("isTargetAImport", true);
             return null;
         }
 
@@ -42,15 +67,8 @@ public class UndefinedMethod extends AnalysisVisitor {
         if (objectType.getName().equals(table.getClassName())){
             // check if the method is declared in the class
             if (table.getMethods().stream()
-                    .anyMatch(method -> method.equals(methodName))) {
-                return null;
-            }
-        }
-
-        // check if its a superclass
-        var superClass = table.getSuper();
-        if (superClass != null) {
-            if (objectType.getName().equals(superClass) || objectType.getName().equals(table.getClassName())) {
+                    .anyMatch(method -> method.equals(methodName)) || table.getSuper() != null) {
+                methodCall.putObject("isTargetAImport", false);
                 return null;
             }
         }

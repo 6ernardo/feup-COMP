@@ -63,6 +63,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         StringBuilder computation = new StringBuilder();
         StringBuilder paramCodes = new StringBuilder();
 
+
         // extract : name of the function, target expr and argument exprs
         String nameOfTheFunction = node.get("name");
         List<JmmNode> argumentsExpr = node.getChildren();
@@ -87,10 +88,16 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
             }
         }
 
+        var isImportedClass = (boolean)node.getObject("isTargetAImport");
+
         // make code like this
 
         String code;
-        var type = OptUtils.toOllirType(TypeUtils.getExprType(node, table));
+
+        String type = null;
+        if (!isImportedClass){
+            type = OptUtils.toOllirType(TypeUtils.getExprType(node, table));
+        }
 
         if (type == null){
             type = getSpecialCaseType(node);
