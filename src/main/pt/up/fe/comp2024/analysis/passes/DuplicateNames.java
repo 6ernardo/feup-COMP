@@ -75,9 +75,10 @@ public class DuplicateNames extends AnalysisVisitor {
             }else {
                 fields.add(name);
             }
-        }else{ // local variable
-            if(localVariables.contains(name)){
-                var message = "Duplicate local variable name: " + name + " in function " + currentMethod ;
+        }else{
+            // local variable
+            if(localVariables.contains(name)) {
+                var message = "Duplicate local variable name: " + name + " in function " + currentMethod;
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(node),
@@ -85,7 +86,17 @@ public class DuplicateNames extends AnalysisVisitor {
                         message,
                         null)
                 );
-            }else{
+            // param variable
+            } else if (parameters.contains(name)) {
+                var message = "Duplicate parameter name: " + name + " in function " + currentMethod;
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(node),
+                        NodeUtils.getColumn(node),
+                        message,
+                        null)
+                );
+            } else{
                 localVariables.add(name);
             }
         }
