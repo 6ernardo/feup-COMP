@@ -1,41 +1,18 @@
-import io.som;
-class Foo {
 
-   public static void main(String[] args) {
-   }
+import io;
+class Foo{
+    int field;
 
-   public int somCalls(){
-      int temp1;
-      int temp2;
-      som s;
+    public static void main(String[] args){
+        io.println();
+    }
 
-      // virtual calls
-      s = new som();
-      temp1 = s.som1(1,2);
-      temp1 = s.som1(temp1+9,2);
+    public int add(int param){
+        int local;
+        int res;
+        res = local[0];
 
-      // static calls
+        return 0;
 
-      temp1 = som.som2(1,2);
-      temp2 = som.som2(temp1+9,2);
-
-      return temp1;
-   }
-
-   public Foo getInstance(){
-      Foo tipo;
-      int res;
-
-      tipo = new Foo();
-
-      // call an unknown method
-      //res = tipo.unknown(); // should throw an error
-
-      // call a known method
-      res = tipo.somCalls();
-
-      res = this.somCalls();
-      return tipo;
-   }
-
+    }
 }

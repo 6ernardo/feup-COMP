@@ -68,13 +68,13 @@ program
     : importDecl* classDecl EOF
     ;
 
-importName : name=ID;
+importName : name=(ID|MAIN);
 
 importDecl
     : IMPORT (importName PERIOD)* importName SEMI;
 
 classDecl
-    : CLASS name=ID (EXTENDS superclass=ID)?
+    : CLASS name=(ID|MAIN) (EXTENDS superclass=ID)?
         LCURLY
         varDecl*
         methodDecl*
@@ -82,7 +82,7 @@ classDecl
     ;
 
 varDecl
-    : type name=(ID | MAIN) SEMI #VariableDecl
+    : type name=(ID | MAIN) SEMI
     ;
 
 type locals[boolean isArray=false, boolean isVarArgs=false]
@@ -91,7 +91,7 @@ type locals[boolean isArray=false, boolean isVarArgs=false]
     | name= INT
     | name= BOOLEAN
     | name= STRING
-    | name= ID
+    | name= (ID | MAIN)
     ;
 
 returnStmt

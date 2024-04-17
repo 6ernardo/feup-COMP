@@ -17,6 +17,7 @@ import pt.up.fe.specs.util.SpecsCheck;
 public class UndeclaredVariable extends AnalysisVisitor {
 
     private String currentMethod;
+    private boolean isMethodStatic;
 
     @Override
     public void buildVisitor() {
@@ -26,6 +27,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
         currentMethod = method.get("name");
+        isMethodStatic = method.get("isStatic").equals("true");
         return null;
     }
 
@@ -52,10 +54,12 @@ public class UndeclaredVariable extends AnalysisVisitor {
         }
 
         // Var is a field, return
-        if (table.getFields().stream()
+        if (!isMethodStatic && table.getFields().stream()
                 .anyMatch(param -> param.getName().equals(varRefName))) {
+
             varRefExpr.putObject("isStatic", false);
             varRefExpr.putObject("isField",true);
+
             return null;
         }
 
