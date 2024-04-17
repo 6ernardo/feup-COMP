@@ -162,9 +162,9 @@ public class JasminGenerator {
 
             code.append(instCode);
 
-            //if(inst.getInstType() == InstructionType.CALL && ((CallInstruction) inst).getReturnType().getTypeOfElement() == ElementType.VOID){
-            //    code.append("pop").append(NL);
-            //}
+//            if(inst.getInstType() == InstructionType.CALL && ((CallInstruction) inst).getReturnType().getTypeOfElement() == ElementType.VOID){
+//                code.append("pop").append(NL);
+//            }
         }
 
         code.append(".end method\n");
@@ -277,7 +277,6 @@ public class JasminGenerator {
         var returnOperand = returnInst.getOperand();
 
         if (returnOperand == null) {
-
             return NL + "return" + NL;
         }
         // Generate code for the return value
@@ -329,12 +328,12 @@ public class JasminGenerator {
     private String generatePutFields(PutFieldInstruction putFieldInstruction) {
         var code = new StringBuilder();
 
-        var load1 = loadVariable(putFieldInstruction.getObject());
-        var load2 = loadVariable(putFieldInstruction.getValue());
+        var load1 = generators.apply(putFieldInstruction.getObject());
+        var load2 = generators.apply(putFieldInstruction.getValue());
         var class_name = putFieldInstruction.getObject().getName().equals("this") ? ollirResult.getOllirClass().getClassName() : putFieldInstruction.getObject().getName();
         var putfield = "putfield " + class_name + "/" + putFieldInstruction.getField().getName() + " " + getTypeSignature(putFieldInstruction.getField().getType());
 
-        code.append(load1).append(NL).append(load2).append(NL).append(putfield).append(NL).append(NL);
+        code.append(load1).append(load2).append(putfield).append(NL).append(NL);
 
         return code.toString();
     }
@@ -342,11 +341,11 @@ public class JasminGenerator {
     private String generateGetFields(GetFieldInstruction getFieldInstruction) {
         var code = new StringBuilder();
 
-        var load = loadVariable(getFieldInstruction.getObject());
+        var load = generators.apply(getFieldInstruction.getObject());
         var class_name = getFieldInstruction.getObject().getName().equals("this") ? ollirResult.getOllirClass().getClassName() : getFieldInstruction.getObject().getName();
         var getfield = "getfield " + class_name + "/" + getFieldInstruction.getField().getName() + " " + getTypeSignature(getFieldInstruction.getField().getType());
 
-        code.append(load).append(NL).append(getfield).append(NL).append(NL);
+        code.append(load).append(getfield).append(NL).append(NL);
         return code.toString();
     }
 
@@ -355,12 +354,17 @@ public class JasminGenerator {
 
         if(callInstruction.getInvocationType() == CallType.NEW){
             var name = ((ClassType) callInstruction.getCaller().getType()).getName();
+            for(String imported : ollirResult.getOllirClass().getImports()){
+                if(imported.endsWith("." + name)) {
+                    name = imported.replace(".", "/");
+                }
+            }
             var instance = "new " + name;
 
             code.append(instance).append(NL).append("dup").append(NL);
         }
         else if(callInstruction.getInvocationType() == CallType.invokespecial){
-            var load = loadVariable(callInstruction.getCaller());
+            var load = generators.apply(callInstruction.getCaller());
 
             StringBuilder args = new StringBuilder();
             for(Element parameter : callInstruction.getArguments()){
@@ -368,16 +372,21 @@ public class JasminGenerator {
             }
 
             var name = ((ClassType) callInstruction.getCaller().getType()).getName();
-            var invoke = callInstruction.getInvocationType().name() + " " + name + "/<init>(" + args + ")V";
+            for(String imported : ollirResult.getOllirClass().getImports()){
+                if(imported.endsWith("." + name)) {
+                    name = imported.replace(".", "/");
+                }
+            }
+            var invoke = callInstruction.getInvocationType().name() + " " + name + "/<init>(" + args + ")" + getTypeSignature(callInstruction.getReturnType());
             code.append(load).append(NL).append(invoke).append(NL);
             code.append("pop").append(NL); // always pops the return value cause it's a constructor
         }
         else if(callInstruction.getInvocationType() == CallType.invokevirtual){
-            var load = loadVariable(callInstruction.getCaller());
+            var load = generators.apply(callInstruction.getCaller());
 
             StringBuilder loads = new StringBuilder();
             for(Element parameter : callInstruction.getArguments()){
-                loads.append(loadVariable(parameter)).append(NL);
+                loads.append(generators.apply(parameter)).append(NL);
             }
 
             StringBuilder args = new StringBuilder();
@@ -396,7 +405,7 @@ public class JasminGenerator {
 
             StringBuilder loads = new StringBuilder();
             for(Element parameter : callInstruction.getArguments()){
-                loads.append(loadVariable(parameter)).append(NL);
+                loads.append(generators.apply(parameter));
             }
 
             StringBuilder args = new StringBuilder();
@@ -405,7 +414,7 @@ public class JasminGenerator {
             }
 
             var name = ((Operand) callInstruction.getCaller()).getName() + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
-            var invoke = callInstruction.getInvocationType().name() + " " + name + "(" + args + ")V";
+            var invoke = callInstruction.getInvocationType().name() + " " + name + "(" + args + ")" + getTypeSignature(callInstruction.getReturnType());
             code.append(loads).append(invoke).append(NL);
 
         }
@@ -415,53 +424,5 @@ public class JasminGenerator {
         return code.toString();
     }
 
-    private String loadVariable(Element element) {
-        if (element instanceof LiteralElement) return this.loadLiteralVariable((LiteralElement) element);
-        if (element instanceof ArrayOperand) return this.loadArrayVariable((ArrayOperand) element);
-        if (element instanceof Operand) return this.loadOperandVariable((Operand) element);
-        return null;
-    }
-
-    private String loadLiteralVariable(LiteralElement element) {
-        String result = "";
-        String literal = element.getLiteral();
-        ElementType elementType = element.getType().getTypeOfElement();
-        if (elementType != ElementType.INT32 && elementType != ElementType.BOOLEAN) {
-            result += "ldc " + literal;
-        } else {
-            int value = Integer.parseInt(literal);
-
-            // Priority
-            if (value>= -1 && value<=5) result += "iconst_";
-            else if (value>= -128 && value<=127) result += "bipush ";
-            else if (value>= -32768 && value<=32767) result += "sipush ";
-            else result += "ldc ";
-
-            result += (value == -1) ? "m1" : value;
-        }
-        return result;
-    }
-
-    private String loadArrayVariable(ArrayOperand element) {
-        return  "aload" + this.getVariableIndex(element.getName()) +
-                "\n" + this.loadVariable(element.getIndexOperands().get(0)) +
-                "iload";
-    }
-
-    private String loadOperandVariable(Operand operand) {
-        return switch (operand.getType().getTypeOfElement()) {
-            case THIS -> "aload_0";
-            case STRING, ARRAYREF, OBJECTREF -> "aload" + this.getVariableIndex(operand.getName());
-            case BOOLEAN, INT32 -> "iload" + this.getVariableIndex(operand.getName());
-            default -> null;
-        };
-    }
-
-    private String getVariableIndex(String variableName) {
-        if (variableName.equals("this")) return "_0";
-        int number = currentMethod.getVarTable().get(variableName).getVirtualReg();
-        //int number = table.get(variableName).getVirtualReg();
-        return (number < 4 ? "_" : " ") + number;
-    }
 
 }
