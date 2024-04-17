@@ -68,7 +68,7 @@ program
     : importDecl* classDecl EOF
     ;
 
-importName : name=ID;
+importName : name=(ID|MAIN);
 
 importDecl
     : IMPORT (importName PERIOD)* importName SEMI;
