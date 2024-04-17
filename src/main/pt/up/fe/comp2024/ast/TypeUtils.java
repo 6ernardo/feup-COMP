@@ -46,12 +46,13 @@ public class TypeUtils {
         var kind = Kind.fromString(stmt.getKind());
 
         Type type = switch (kind) {
-            case ASSIGN_STMT -> getAssignStmtType(stmt, table);
+            case ASSIGN_STMT, ARRAY_ASSIGN_STMT -> getAssignStmtType(stmt, table);
             default -> throw new UnsupportedOperationException("Can't compute type for statement kind '" + kind + "'");
         };
 
         return type;
     }
+
 
 
 
@@ -312,5 +313,9 @@ public class TypeUtils {
             }
         }
         return false;
+    }
+
+    public static Type getElementType(Type arrayType) {
+        return new Type(arrayType.getName(), false);
     }
 }

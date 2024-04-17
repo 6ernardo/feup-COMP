@@ -98,7 +98,6 @@ public class InvalidAssignment extends AnalysisVisitor {
 
     private Void visitArrayAssignStmt(JmmNode arrayAssignStmt, SymbolTable table) {
 
-        Type assignType = TypeUtils.getAssignStmtType(arrayAssignStmt, table);
         JmmNode index = arrayAssignStmt.getChildren().get(0);
         JmmNode value = arrayAssignStmt.getChildren().get(1);
         var intType = new Type(TypeUtils.getIntTypeName(), false);
@@ -117,9 +116,29 @@ public class InvalidAssignment extends AnalysisVisitor {
             );
         }
 
-        // Check if value type is correct
-        if (!TypeUtils.getExprType(value, table).equals(intType)) {
+        // first check if the variabel is an array
 
+        Type arrayType = TypeUtils.getStmtType(arrayAssignStmt, table);
+
+        if (arrayType == null || !arrayType.isArray()) {
+            // Create error report
+            String message = "Invalid array assignment";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(arrayAssignStmt),
+                    NodeUtils.getColumn(arrayAssignStmt),
+                    message,
+                    null)
+            );
+            return null;
+        }
+
+        // then extract the element type of the array
+        var elementType = TypeUtils.getElementType(arrayType);
+        var valueType = TypeUtils.getExprType(value, table);
+
+        // Check if the value type is correct
+        if (!elementType.equals(valueType)) {
             // Create error report
             String message = "Invalid value type in array assignment";
             addReport(Report.newError(

@@ -1,15 +1,18 @@
 
 import io;
-class main{
-    int main;
+class Foo{
+    int field;
 
     public static void main(String[] args){
         io.println();
     }
 
-    public int add(int main){
-        int main;
-        main = 4;
-        return main +1;
+    public int add(int param){
+        int local;
+        int res;
+        res = local[0];
+
+        return 0;
+
     }
 }
