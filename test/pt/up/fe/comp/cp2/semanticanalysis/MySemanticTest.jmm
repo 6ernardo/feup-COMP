@@ -7,12 +7,19 @@ class Foo{
         io.println();
     }
 
-    public int add(int param){
-        int local;
-        int res;
-        res = local[0];
+    public int getField(){
+        return field;
+    }
 
-        return 0;
+    public int getFieldFrom(Foo f){
+         return f.getField();
+    }
+
+    public int add(int param){
+
+        this;
+
+        return this.getFieldFrom(this) + param;
 
     }
 }

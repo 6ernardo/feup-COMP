@@ -77,7 +77,7 @@ public class DuplicateNames extends AnalysisVisitor {
             }
         }else{
             // local variable
-            if(localVariables.contains(name)) {
+            if(localVariables.contains(name)) { // check for duplicate local variables
                 var message = "Duplicate local variable name: " + name + " in function " + currentMethod;
                 addReport(Report.newError(
                         Stage.SEMANTIC,
@@ -86,9 +86,9 @@ public class DuplicateNames extends AnalysisVisitor {
                         message,
                         null)
                 );
-            // param variable
-            } else if (parameters.contains(name)) {
-                var message = "Duplicate parameter name: " + name + " in function " + currentMethod;
+            } else if (parameters.contains(name)) { // check for parameters with the same name
+                var message = "Variable " + name +
+                        " is already defined in this scope as a parameter in function " + currentMethod;
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(node),

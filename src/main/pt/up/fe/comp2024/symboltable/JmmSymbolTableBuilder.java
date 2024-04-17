@@ -130,7 +130,7 @@ public class JmmSymbolTableBuilder {
         Map<String, List<Symbol>> map = new HashMap<>();
 
 
-        classDecl.getChildren(METHOD_DECL).stream()
+        classDecl.getChildren(METHOD_DECL)
                 .forEach(method -> map.put(method.get("name"), getLocalsList(method)));
 
         return map;
