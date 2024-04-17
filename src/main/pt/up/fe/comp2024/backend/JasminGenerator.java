@@ -303,8 +303,8 @@ public class JasminGenerator {
             case INT32: return "I";
             case BOOLEAN: return "Z";
             case VOID: return "V";
-            case CLASS: return "L" + type.toString() + ";";
-            case ARRAYREF: return "[" + getTypeSignature(((ArrayType) type).getElementType());
+            case CLASS: return "L" + this.getImportedClassName(type.toString()) + ";";
+            case ARRAYREF, OBJECTREF: return "[" + getTypeSignature(((ArrayType) type).getElementType());
             case STRING: return "Ljava/lang/String;";
             default: throw new NotImplementedException(type.getTypeOfElement().toString());
         }
@@ -330,7 +330,7 @@ public class JasminGenerator {
 
         var load1 = generators.apply(putFieldInstruction.getObject());
         var load2 = generators.apply(putFieldInstruction.getValue());
-        var class_name = putFieldInstruction.getObject().getName().equals("this") ? ollirResult.getOllirClass().getClassName() : putFieldInstruction.getObject().getName();
+        var class_name = this.getImportedClassName(putFieldInstruction.getObject().getName());
         var putfield = "putfield " + class_name + "/" + putFieldInstruction.getField().getName() + " " + getTypeSignature(putFieldInstruction.getField().getType());
 
         code.append(load1).append(load2).append(putfield).append(NL).append(NL);
@@ -342,7 +342,7 @@ public class JasminGenerator {
         var code = new StringBuilder();
 
         var load = generators.apply(getFieldInstruction.getObject());
-        var class_name = getFieldInstruction.getObject().getName().equals("this") ? ollirResult.getOllirClass().getClassName() : getFieldInstruction.getObject().getName();
+        var class_name = this.getImportedClassName(getFieldInstruction.getObject().getName());
         var getfield = "getfield " + class_name + "/" + getFieldInstruction.getField().getName() + " " + getTypeSignature(getFieldInstruction.getField().getType());
 
         code.append(load).append(getfield).append(NL).append(NL);
@@ -353,7 +353,8 @@ public class JasminGenerator {
         var code = new StringBuilder();
 
         if(callInstruction.getInvocationType() == CallType.NEW){
-            var name = ((ClassType) callInstruction.getCaller().getType()).getName();
+            var name = callInstruction.getCaller().getType().getTypeOfElement() == ElementType.THIS ?
+                    ((ClassType) callInstruction.getCaller().getType()).getName() : getImportedClassName(((ClassType) callInstruction.getCaller().getType()).getName());
             for(String imported : ollirResult.getOllirClass().getImports()){
                 if(imported.endsWith("." + name)) {
                     name = imported.replace(".", "/");
@@ -371,12 +372,9 @@ public class JasminGenerator {
                 args.append(getTypeSignature(parameter.getType()));
             }
 
-            var name = ((ClassType) callInstruction.getCaller().getType()).getName();
-            for(String imported : ollirResult.getOllirClass().getImports()){
-                if(imported.endsWith("." + name)) {
-                    name = imported.replace(".", "/");
-                }
-            }
+            var name = callInstruction.getCaller().getType().getTypeOfElement() == ElementType.THIS ?
+                    ((ClassType) callInstruction.getCaller().getType()).getName() : getImportedClassName(((ClassType) callInstruction.getCaller().getType()).getName());
+
             var invoke = callInstruction.getInvocationType().name() + " " + name + "/<init>(" + args + ")" + getTypeSignature(callInstruction.getReturnType());
             code.append(load).append(NL).append(invoke).append(NL);
             code.append("pop").append(NL); // always pops the return value cause it's a constructor
@@ -394,7 +392,7 @@ public class JasminGenerator {
                 args.append(getTypeSignature(parameter.getType()));
             }
 
-            var name = ((ClassType) callInstruction.getCaller().getType()).getName() + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+            var name = this.getImportedClassName(((ClassType) callInstruction.getCaller().getType()).getName()) + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
             var invoke = callInstruction.getInvocationType().name() + " " + name + "(" + args + ")" + getTypeSignature(callInstruction.getReturnType());
             code.append(load).append(NL).append(loads).append(invoke).append(NL);
 
@@ -413,7 +411,7 @@ public class JasminGenerator {
                 args.append(getTypeSignature(parameter.getType()));
             }
 
-            var name = ((Operand) callInstruction.getCaller()).getName() + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+            var name = this.getImportedClassName(((Operand) callInstruction.getCaller()).getName()) + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
             var invoke = callInstruction.getInvocationType().name() + " " + name + "(" + args + ")" + getTypeSignature(callInstruction.getReturnType());
             code.append(loads).append(invoke).append(NL);
 
@@ -424,5 +422,18 @@ public class JasminGenerator {
         return code.toString();
     }
 
+    private String getImportedClassName(String name){
+        if(name.equals("this")){
+            return ollirResult.getOllirClass().getClassName();
+        }
+
+        for(String imported : ollirResult.getOllirClass().getImports()){
+            if(imported.endsWith("." + name)) {
+                return imported.replace(".", "/");
+            }
+        }
+
+        return name;
+    }
 
 }
