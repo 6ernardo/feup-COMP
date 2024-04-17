@@ -91,7 +91,7 @@ type locals[boolean isArray=false, boolean isVarArgs=false]
     | name= INT
     | name= BOOLEAN
     | name= STRING
-    | name= ID
+    | name= (ID | MAIN)
     ;
 
 returnStmt
