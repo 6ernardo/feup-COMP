@@ -53,6 +53,8 @@ public class TypeUtils {
         return type;
     }
 
+
+
     private static Type getVariableType(String variableName, SymbolTable table ,  Optional<JmmNode> currentMethod){
         // check if there is an entry for the variable in the method
         if (currentMethod.isPresent()) {
@@ -279,5 +281,36 @@ public class TypeUtils {
 
     public static boolean isPrimitive(Type assignType) {
         return assignType.getName().equals(INT_TYPE_NAME) || assignType.getName().equals(BOOLEAN_TYPE_NAME);
+    }
+
+    public static boolean isField(String name , String methodSignature, SymbolTable table){
+        var locals = table.getLocalVariables(methodSignature);
+        if (locals != null){
+            for (Symbol s : locals){
+                if (s.getName().equals(name)){
+                    return false;
+                }
+            }
+        }
+
+
+        var params = table.getParameters(methodSignature);
+        if (params != null){
+            for (Symbol s : params){
+                if (s.getName().equals(name)){
+                    return false;
+                }
+            }
+        }
+
+        var fields = table.getFields();
+        if (fields != null){
+            for (Symbol s : fields){
+                if (s.getName().equals(name)){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

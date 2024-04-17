@@ -18,6 +18,7 @@ import pt.up.fe.specs.util.SpecsCheck;
 
 public class InvalidAssignment extends AnalysisVisitor {
     private String currentMethod;
+    private boolean isMethodStatic;
 
     public void buildVisitor() {
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
@@ -27,6 +28,7 @@ public class InvalidAssignment extends AnalysisVisitor {
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
         currentMethod = method.get("name");
+        isMethodStatic = method.get("isStatic").equals("true");
         return null;
     }
 
@@ -52,6 +54,21 @@ public class InvalidAssignment extends AnalysisVisitor {
         // if the child type is an import
 
         Type assignType = TypeUtils.getAssignStmtType(assignStmt, table);
+
+        var variable = assignStmt.get("name");
+        if (TypeUtils.isField(variable, currentMethod, table) && isMethodStatic) {
+            // Create error report
+            String message = "Cannot assign to a field in a static method";
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(assignStmt),
+                    NodeUtils.getColumn(assignStmt),
+                    message,
+                    null)
+            );
+            return null;
+        }
+
         JmmNode child = assignStmt.getChildren().get(0);
         Type childType = TypeUtils.getExprType(child, table);
 

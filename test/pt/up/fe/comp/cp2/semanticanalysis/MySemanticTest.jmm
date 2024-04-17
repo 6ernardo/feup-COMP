@@ -5,6 +5,7 @@ class main{
 
     public static void main(String[] args){
         io.println();
+        main = 9;
     }
 
     public int add(int main){
