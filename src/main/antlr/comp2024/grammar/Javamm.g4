@@ -74,7 +74,7 @@ importDecl
     : IMPORT (importName PERIOD)* importName SEMI;
 
 classDecl
-    : CLASS name=ID (EXTENDS superclass=ID)?
+    : CLASS name=(ID|MAIN) (EXTENDS superclass=ID)?
         LCURLY
         varDecl*
         methodDecl*

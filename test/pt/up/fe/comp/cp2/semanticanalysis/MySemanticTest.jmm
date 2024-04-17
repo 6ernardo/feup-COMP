@@ -1,1 +1,15 @@
-import name
+
+import io;
+class main{
+    int main;
+
+    public static void main(String[] args){
+        io.println();
+    }
+
+    public int add(int main){
+        int main;
+        main = 4;
+        return main +1;
+    }
+}
