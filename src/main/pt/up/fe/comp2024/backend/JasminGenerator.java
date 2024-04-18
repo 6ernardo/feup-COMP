@@ -160,15 +160,12 @@ public class JasminGenerator {
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
 
-            code.append(instCode);
-
-            if(inst.getInstType() == InstructionType.CALL && ((CallInstruction) inst).getReturnType().getTypeOfElement() == ElementType.VOID
-            && ( ((CallInstruction) inst).getInvocationType() == CallType.invokestatic || ((CallInstruction) inst).getInvocationType() == CallType.invokevirtual ) ){
-                //code.append("pop").append(NL);
-
+            if(inst.getInstType() == InstructionType.CALL && ((CallInstruction) inst).getReturnType().getTypeOfElement() != ElementType.VOID
+                    && ( ((CallInstruction) inst).getInvocationType() == CallType.invokestatic || ((CallInstruction) inst).getInvocationType() == CallType.invokevirtual ) ){
+                code.append("pop").append(NL);
             }
 
-
+            code.append(instCode);
         }
 
         code.append(".end method\n");
