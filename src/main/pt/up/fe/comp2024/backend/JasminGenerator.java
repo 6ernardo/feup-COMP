@@ -367,11 +367,11 @@ public class JasminGenerator {
         if(callInstruction.getInvocationType() == CallType.NEW){
             var name = callInstruction.getCaller().getType().getTypeOfElement() == ElementType.THIS ?
                     ((ClassType) callInstruction.getCaller().getType()).getName() : getImportedClassName(((ClassType) callInstruction.getCaller().getType()).getName());
-            for(String imported : ollirResult.getOllirClass().getImports()){
-                if(imported.endsWith("." + name)) {
-                    name = imported.replace(".", "/");
-                }
-            }
+//            for(String imported : ollirResult.getOllirClass().getImports()){
+//                if(imported.endsWith("." + name)) {
+//                    name = imported.replace(".", "/");
+//                }
+//            }
             var instance = "new " + name;
 
             this.needsPop = true;
@@ -426,7 +426,8 @@ public class JasminGenerator {
             }
 
             var name = callInstruction.getCaller().getType().getTypeOfElement() == ElementType.THIS ?
-                    ((ClassType) callInstruction.getCaller().getType()).getName() : this.getImportedClassName(((Operand) callInstruction.getCaller()).getName()) + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+                    ((ClassType) callInstruction.getCaller().getType()).getName() : this.getImportedClassName(((Operand) callInstruction.getCaller()).getName())
+                    + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
             var invoke = callInstruction.getInvocationType().name() + " " + name + "(" + args + ")" + getTypeSignature(callInstruction.getReturnType());
             code.append(loads).append(invoke).append(NL);
 
