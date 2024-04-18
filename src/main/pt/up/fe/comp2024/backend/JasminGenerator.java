@@ -379,7 +379,7 @@ public class JasminGenerator {
 
             var invoke = callInstruction.getInvocationType().name() + " " + name + "/<init>(" + args + ")" + getTypeSignature(callInstruction.getReturnType());
             code.append(load).append(NL).append(invoke).append(NL);
-            //code.append("pop").append(NL); // always pops the return value cause it's a constructor
+            code.append("pop").append(NL); // always pops the return value cause it's a constructor
         }
         else if(callInstruction.getInvocationType() == CallType.invokevirtual){
             var load = generators.apply(callInstruction.getCaller());
