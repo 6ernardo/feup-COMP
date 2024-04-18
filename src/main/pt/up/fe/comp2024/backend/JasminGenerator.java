@@ -305,7 +305,8 @@ public class JasminGenerator {
             case BOOLEAN: return "Z";
             case VOID: return "V";
             case CLASS: return "L" + this.getImportedClassName(type.toString()) + ";";
-            case ARRAYREF, OBJECTREF: return "[" + getTypeSignature(((ArrayType) type).getElementType());
+            case ARRAYREF: return "[" + getTypeSignature(((ArrayType) type).getElementType());
+            case OBJECTREF : return ((ClassType)type).getName();
             case STRING: return "Ljava/lang/String;";
             default: throw new NotImplementedException(type.getTypeOfElement().toString());
         }

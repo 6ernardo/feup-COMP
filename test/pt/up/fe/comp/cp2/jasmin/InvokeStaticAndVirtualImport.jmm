@@ -1,0 +1,17 @@
+import io.test;
+
+class Foo{
+    public static void main(String[] args){
+    }
+
+    public int add(int a, int b){
+        int res;
+        test t;
+
+        t = new test();
+
+        res = test.add(a,b);
+        res = t.add(a,b);
+    }
+
+}
