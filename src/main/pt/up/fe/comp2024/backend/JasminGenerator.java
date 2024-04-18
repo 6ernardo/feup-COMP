@@ -162,7 +162,7 @@ public class JasminGenerator {
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
 
-            if(inst.getInstType() == InstructionType.CALL && ((CallInstruction) inst).getReturnType().getTypeOfElement() != ElementType.VOID
+            if((inst instanceof CallInstruction) && ((CallInstruction) inst).getReturnType().getTypeOfElement() != ElementType.VOID
                     && ( ((CallInstruction) inst).getInvocationType() == CallType.invokestatic || ((CallInstruction) inst).getInvocationType() == CallType.invokevirtual ) ){
                 //code.append("pop").append(NL);
                 this.needsPop = true;
@@ -367,11 +367,6 @@ public class JasminGenerator {
         if(callInstruction.getInvocationType() == CallType.NEW){
             var name = callInstruction.getCaller().getType().getTypeOfElement() == ElementType.THIS ?
                     ((ClassType) callInstruction.getCaller().getType()).getName() : getImportedClassName(((ClassType) callInstruction.getCaller().getType()).getName());
-//            for(String imported : ollirResult.getOllirClass().getImports()){
-//                if(imported.endsWith("." + name)) {
-//                    name = imported.replace(".", "/");
-//                }
-//            }
             var instance = "new " + name;
 
             this.needsPop = true;
