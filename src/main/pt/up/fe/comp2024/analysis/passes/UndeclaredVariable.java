@@ -91,6 +91,10 @@ public class UndeclaredVariable extends AnalysisVisitor {
                 null)
         );
 
+        varRefExpr.putObject("type", null);
+        varRefExpr.putObject("isStatic", null);
+        varRefExpr.putObject("isField",null);
+
         return null;
     }
 

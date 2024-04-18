@@ -6,7 +6,6 @@ import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import static pt.up.fe.comp2024.ast.Kind.METHOD_DECL;
@@ -202,10 +201,18 @@ public class TypeUtils {
         return sourceType.getName().equals(destinationType.getName());
     }
 
-    public static Type getOperatorType(String operator) {
+    public static Type getOperatorReturnType(String operator) {
         return switch (operator) {
             case "+", "-", "*", "/" -> new Type(INT_TYPE_NAME, false);
             case "<", "&&", "not" -> new Type(BOOLEAN_TYPE_NAME, false);
+            default -> throw new RuntimeException("Unknown operator '" + operator + "'");
+        };
+    }
+
+    public static Type getOperatorExprType(String operator){
+        return switch (operator) {
+            case "+", "-", "*", "/", "<" -> new Type(INT_TYPE_NAME, false);
+            case "&&", "not" -> new Type(BOOLEAN_TYPE_NAME, false);
             default -> throw new RuntimeException("Unknown operator '" + operator + "'");
         };
     }

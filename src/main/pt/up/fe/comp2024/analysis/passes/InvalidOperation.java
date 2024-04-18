@@ -43,13 +43,13 @@ public class InvalidOperation extends AnalysisVisitor {
         Type leftType = TypeUtils.getExprType(left, table);
         Type rightType = TypeUtils.getExprType(right, table);
 
-        Type operatorType = TypeUtils.getOperatorType(operator);
+        Type operatorReturnType = TypeUtils.getOperatorReturnType(operator);
+        Type operatorExpectedExprsType = TypeUtils.getOperatorExprType(operator);
 
         // check if the type of operation is valid
-        if ( (operatorType.equals(leftType) || leftType == null) && (operatorType.equals(rightType) ||rightType == null) ) {
+        if ( (operatorExpectedExprsType.equals(leftType) || leftType == null) && (operatorExpectedExprsType.equals(rightType) ||rightType == null) ) {
             // add types to nodes
-            binaryExpr.putObject("leftType", leftType);
-            binaryExpr.putObject("rightType", rightType);
+            binaryExpr.putObject("type", operatorReturnType);
             return null;
         }
 
@@ -76,7 +76,7 @@ public class InvalidOperation extends AnalysisVisitor {
         var operator = unaryExpr.get("op");
 
         Type operandType = TypeUtils.getExprType(operand, table);
-        Type operatorType = TypeUtils.getOperatorType(operator);
+        Type operatorType = TypeUtils.getOperatorReturnType(operator);
 
         // check if the type of operation is valid
         if ( operatorType.equals(operandType) ) {

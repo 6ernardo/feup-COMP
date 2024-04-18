@@ -28,7 +28,66 @@ public class JmmSymbolTableBuilder {
         var params = buildParams(classDecl);
         var locals = buildLocals(classDecl);
 
-        return new JmmSymbolTable(imports, className, superClass, fields, methods, returnTypes, params, locals);
+        var jmmSymbolTable = new JmmSymbolTable(imports, className, superClass, fields, methods, returnTypes, params, locals);
+
+        // print table
+        printJmmTable(jmmSymbolTable);
+
+        return jmmSymbolTable;
+    }
+
+    private static void printJmmTable(JmmSymbolTable table) {
+        // start with imports
+        System.out.println("Imports:");
+        for (String imp : table.getImports()) {
+            System.out.println(imp);
+        }
+        System.out.println();
+
+        // class name ( and super if there is one)
+        StringBuilder m = new StringBuilder();
+        m.append("Class Name: ").append(table.getClassName());
+        if (table.getSuper() != null) {
+            m.append(" extends ").append(table.getSuper());
+        }
+        System.out.println(m);
+
+        // fields
+        System.out.println("Fields:");
+        for (Symbol field : table.getFields()) {
+            System.out.println(field.getType() + " " + field.getName());
+        }
+        System.out.println();
+
+        // methods
+        System.out.println("Methods:");
+        for (String method : table.getMethods()) {
+            System.out.println(method);
+        }
+        System.out.println();
+
+        // method return types
+        System.out.println("Method Return Types:");
+        for (String method : table.getMethods()) {
+            var returnType = table.getReturnType(method);
+            System.out.println(method + " -> " + returnType);
+        }
+        System.out.println();
+
+        // method parameters
+        System.out.println("Method Parameters:");
+        for (String method : table.getMethods()) {
+            var params = table.getParameters(method);
+            System.out.println(method + " -> " + params);
+        }
+
+        // method locals
+        System.out.println("Method Locals:");
+        for (String method : table.getMethods()) {
+            var locals = table.getLocalVariables(method);
+            System.out.println(method + " -> " + locals);
+        }
+        System.out.println();
     }
 
     private static List<String> buildImports(JmmNode root){
