@@ -30,6 +30,8 @@ public class JasminGenerator {
 
     Method currentMethod;
 
+    boolean needsPop = false;
+
     private final FunctionClassMap<TreeNode, String> generators;
 
     public JasminGenerator(OllirResult ollirResult) {
@@ -162,7 +164,8 @@ public class JasminGenerator {
 
             if(inst.getInstType() == InstructionType.CALL && ((CallInstruction) inst).getReturnType().getTypeOfElement() != ElementType.VOID
                     && ( ((CallInstruction) inst).getInvocationType() == CallType.invokestatic || ((CallInstruction) inst).getInvocationType() == CallType.invokevirtual ) ){
-                code.append("pop").append(NL);
+                //code.append("pop").append(NL);
+                this.needsPop = false;
             }
 
             code.append(instCode);
@@ -178,6 +181,13 @@ public class JasminGenerator {
 
     private String generateAssign(AssignInstruction assign) {
         var code = new StringBuilder();
+
+        if(assign.getRhs() instanceof CallInstruction){
+            if (((CallInstruction) assign.getRhs()).getInvocationType() == CallType.invokevirtual || ((CallInstruction) assign.getRhs()).getInvocationType() == CallType.invokestatic){
+                this.needsPop = false;
+            }
+
+        }
 
         // generate code for loading what's on the right
         code.append(generators.apply(assign.getRhs()));
@@ -421,6 +431,11 @@ public class JasminGenerator {
         }
 
         //outros???
+
+        if (this.needsPop){
+            code.append("pop").append(NL);
+            this.needsPop = false;
+        }
 
         return code.toString();
     }
