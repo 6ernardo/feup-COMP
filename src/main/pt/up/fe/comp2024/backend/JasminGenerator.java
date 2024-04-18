@@ -165,7 +165,7 @@ public class JasminGenerator {
             if(inst.getInstType() == InstructionType.CALL && ((CallInstruction) inst).getReturnType().getTypeOfElement() != ElementType.VOID
                     && ( ((CallInstruction) inst).getInvocationType() == CallType.invokestatic || ((CallInstruction) inst).getInvocationType() == CallType.invokevirtual ) ){
                 //code.append("pop").append(NL);
-                this.needsPop = false;
+                this.needsPop = true;
             }
 
             code.append(instCode);
