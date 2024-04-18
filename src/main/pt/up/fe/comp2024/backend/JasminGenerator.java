@@ -413,7 +413,8 @@ public class JasminGenerator {
                 args.append(getTypeSignature(parameter.getType()));
             }
 
-            var name = this.getImportedClassName(((Operand) callInstruction.getCaller()).getName()) + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+            var name = callInstruction.getCaller().getType().getTypeOfElement() == ElementType.THIS ?
+                    ((ClassType) callInstruction.getCaller().getType()).getName() : this.getImportedClassName(((Operand) callInstruction.getCaller()).getName()) + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
             var invoke = callInstruction.getInvocationType().name() + " " + name + "(" + args + ")" + getTypeSignature(callInstruction.getReturnType());
             code.append(loads).append(invoke).append(NL);
 
