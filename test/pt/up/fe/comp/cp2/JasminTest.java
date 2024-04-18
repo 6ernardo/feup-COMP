@@ -36,6 +36,9 @@ public class JasminTest {
     @Test
     public void complexArithmetics() { testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/ComplexArithmetics.ollir"); }
 
+    @Test
+    public void invokeStaticAndVirtualImport() { testOllirToJasmin("pt/up/fe/comp/cp2/jasmin/InvokeStaticAndVirtualImport.ollir"); }
+
     public static void testOllirToJasmin(String resource, String expectedOutput) {
         JasminResult result = null;
 
