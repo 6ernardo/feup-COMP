@@ -162,9 +162,13 @@ public class JasminGenerator {
 
             code.append(instCode);
 
-//            if(inst.getInstType() == InstructionType.CALL && ((CallInstruction) inst).getReturnType().getTypeOfElement() == ElementType.VOID){
-//                code.append("pop").append(NL);
-//            }
+            if(inst.getInstType() == InstructionType.CALL && ((CallInstruction) inst).getReturnType().getTypeOfElement() == ElementType.VOID
+            && ( ((CallInstruction) inst).getInvocationType() == CallType.invokestatic || ((CallInstruction) inst).getInvocationType() == CallType.invokevirtual ) ){
+                //code.append("pop").append(NL);
+
+            }
+
+
         }
 
         code.append(".end method\n");
@@ -378,7 +382,7 @@ public class JasminGenerator {
 
             var invoke = callInstruction.getInvocationType().name() + " " + name + "/<init>(" + args + ")" + getTypeSignature(callInstruction.getReturnType());
             code.append(load).append(NL).append(invoke).append(NL);
-            code.append("pop").append(NL); // always pops the return value cause it's a constructor
+            //code.append("pop").append(NL); // always pops the return value cause it's a constructor
         }
         else if(callInstruction.getInvocationType() == CallType.invokevirtual){
             var load = generators.apply(callInstruction.getCaller());
