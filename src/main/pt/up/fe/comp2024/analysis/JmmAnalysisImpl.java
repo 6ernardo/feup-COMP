@@ -20,7 +20,6 @@ public class JmmAnalysisImpl implements JmmAnalysis {
 
     this.analysisPasses = List.of(
             new DuplicateNames(),
-            new UndeclaredVariable(),
             new InvalidOperation(),
             new InvalidAssignment(),
             new InvalidArrayAccess(),
@@ -31,7 +30,8 @@ public class JmmAnalysisImpl implements JmmAnalysis {
             new UndefinedMethod(),
             new IncompatibleReturn(),
             new IncompatibleArguments(),
-            new Miscellaneous());
+            new Miscellaneous(),
+            new UndeclaredVariable());
 
     }
     @Override
@@ -50,9 +50,6 @@ public class JmmAnalysisImpl implements JmmAnalysis {
             try {
                 var passReports = analysisPass.analyze(rootNode, table);
                 reports.addAll(passReports);
-                if (!reports.isEmpty()) {
-                    break;
-                }
             } catch (Exception e) {
                 reports.add(Report.newError(Stage.SEMANTIC,
                         -1,
