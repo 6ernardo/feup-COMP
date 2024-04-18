@@ -159,14 +159,16 @@ public class JasminGenerator {
         code.append(TAB).append(".limit locals 99").append(NL);
 
         for (var inst : method.getInstructions()) {
-            var instCode = StringLines.getLines(generators.apply(inst)).stream()
-                    .collect(Collectors.joining(NL + TAB, TAB, NL));
 
             if((inst instanceof CallInstruction) && ((CallInstruction) inst).getReturnType().getTypeOfElement() != ElementType.VOID
-                    && ( ((CallInstruction) inst).getInvocationType() == CallType.invokestatic || ((CallInstruction) inst).getInvocationType() == CallType.invokevirtual ) ){
+                    && ( ((CallInstruction) inst).getInvocationType() == CallType.invokestatic ||
+                    ((CallInstruction) inst).getInvocationType() == CallType.invokevirtual ) ){
                 //code.append("pop").append(NL);
                 this.needsPop = true;
             }
+
+            var instCode = StringLines.getLines(generators.apply(inst)).stream()
+                    .collect(Collectors.joining(NL + TAB, TAB, NL));
 
             code.append(instCode);
         }
