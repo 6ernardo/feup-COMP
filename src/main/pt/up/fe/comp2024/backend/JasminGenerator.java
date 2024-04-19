@@ -293,7 +293,7 @@ public class JasminGenerator {
             case INT32: returnInstruction = "ireturn"; break;
             case BOOLEAN: returnInstruction = "ireturn"; break; // Booleans are represented as integers in Jasmin
             case VOID: returnInstruction = "return"; break;
-            case CLASS, ARRAYREF: returnInstruction = "areturn"; break;
+            case CLASS, ARRAYREF, OBJECTREF: returnInstruction = "areturn"; break;
             default: throw new NotImplementedException(returnType.getTypeOfElement().toString());
         }
 

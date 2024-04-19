@@ -1,19 +1,24 @@
-import io.test;
-Foo{
+import Auxi;
+import foo.bar.A;
+import foo.bar.B;
+Foo extends A {
 
 
 .method public static main(args.array.String).V {
 ret.V ;
 }
 
-.method public add(a.i32, b.i32).i32 {
-tmp0.test :=.test new(test).test;
-invokespecial(tmp0.test, "").V;
-t.test :=.test tmp0.test;
-tmp1.i32 :=.i32 invokestatic(test, "add", a.i32, b.i32).i32;
-res.i32 :=.i32 tmp1.i32;
-tmp2.i32 :=.i32 invokevirtual(t.test, "add", a.i32, b.i32).i32;
-res.i32 :=.i32 tmp2.test;
+.method public getFooIns().Foo {
+tmp0.Foo :=.Foo new(Foo).Foo;
+invokespecial(tmp0.Foo, "").V;
+res.Foo :=.Foo tmp0.Foo;
+ret.Foo res.Foo;
+}
+
+.method public test().i32 {
+tmp1.Foo :=.Foo invokevirtual(this.Foo, "getFooIns").Foo;
+res.Foo :=.Foo tmp1.Foo;
+ret.i32 0.i32;
 }
 
 .construct Foo().V {

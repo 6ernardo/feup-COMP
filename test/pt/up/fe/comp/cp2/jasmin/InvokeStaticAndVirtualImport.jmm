@@ -1,17 +1,22 @@
-import io.test;
+import Auxi;
+import foo.bar.A;
+import foo.bar.B;
 
-class Foo{
+class Foo extends A{
     public static void main(String[] args){
     }
 
-    public int add(int a, int b){
-        int res;
-        test t;
-
-        t = new test();
-
-        res = test.add(a,b);
-        res = t.add(a,b);
+    public Foo getFooIns(){
+       Foo res;
+       res = new Foo();
+       return res;
     }
 
+
+    public int test(){
+        Foo res;
+        res = this.getFooIns();
+
+        return 0;
+    }
 }
