@@ -68,10 +68,8 @@ program
     : importDecl* classDecl EOF
     ;
 
-importName : name=(ID|MAIN);
-
 importDecl
-    : IMPORT (importName PERIOD)* importName SEMI;
+    : IMPORT names+=(ID|MAIN) (PERIOD names+=(ID|MAIN))* SEMI;
 
 classDecl
     : CLASS name=(ID|MAIN) (EXTENDS superclass=ID)?

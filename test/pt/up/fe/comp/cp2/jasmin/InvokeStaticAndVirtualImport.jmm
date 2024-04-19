@@ -4,19 +4,29 @@ import foo.bar.B;
 
 class Foo extends A{
     public static void main(String[] args){
+        Auxi auxi;
+        A a;
+        B b;
+        int i;
+        Foo fo;
+        Foo tempFooo;
+
+        tempFooo = new Foo();
+        fo = tempFooo.getFooIns();
+
+
+        auxi = new Auxi();
+        a = new A();
+        b = new B();
+
+
+        i = auxi.instanceCallInt();
+
+        Auxi.staticCall(i);
+
     }
 
     public Foo getFooIns(){
-       Foo res;
-       res = new Foo();
-       return res;
-    }
-
-
-    public int test(){
-        Foo res;
-        res = this.getFooIns();
-
-        return 0;
+        return this;
     }
 }

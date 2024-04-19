@@ -128,17 +128,18 @@ public class DuplicateNames extends AnalysisVisitor {
         // get class and path of the import
 
         var path = new StringBuilder();
-        var names = importDecl.getChildren();
-        for (int i = 0 ; i< names.size(); i++){
-            if (i != 0){
-                path.append(".");
-            }
-            var packageNode = names.get(i);
-            var name = packageNode.get("name");
-            path.append(name);
-        }
-        var className = names.get(names.size()-1).get("name");
-        var pathString = path.toString();
+
+        var importNameObject = importDecl.getObject("names");
+
+        @SuppressWarnings("unchecked")
+        ArrayList<String> names = (ArrayList<String>) importNameObject;
+
+        // join all the names with a dot
+        // use function to join the names
+        names.forEach(name -> path.append(name).append("."));
+
+        String className = names.get(names.size() - 1);
+        String pathString = path.toString();
 
         // check if the class is already imported
         if (importedClasses.contains(className) || importPaths.contains(pathString)){

@@ -7,6 +7,8 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
+import java.util.ArrayList;
+
 import static pt.up.fe.comp2024.ast.Kind.*;
 
 /**
@@ -83,14 +85,14 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         code.append("import ");
 
-        var names = node.getChildren();
+        @SuppressWarnings("unchecked")
+        var names = (ArrayList<String>) node.getObject("names");
+
         for (int i = 0 ; i< names.size(); i++){
             if (i != 0){
                 code.append(".");
             }
-            var packageNode = names.get(i);
-            var name = packageNode.get("name");
-            code.append(name);
+            code.append(names.get(i));
         }
 
         code.append(END_STMT);

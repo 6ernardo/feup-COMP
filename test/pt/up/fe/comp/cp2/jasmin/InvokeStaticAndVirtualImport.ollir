@@ -1,24 +1,17 @@
 import Auxi;
 import foo.bar.A;
 import foo.bar.B;
-Foo extends A {
+Foo{
 
 
 .method public static main(args.array.String).V {
+tmp0.Auxi :=.Auxi new(Auxi).Auxi;
+invokespecial(tmp0.Auxi, "").V;
+auxi.Auxi :=.Auxi tmp0.Auxi;
+tmp1.i32 :=.i32 invokevirtual(auxi.Auxi, "instanceCallInt").i32;
+i.i32 :=.i32 tmp1.i32;
+invokestatic(Auxi, "staticCall", i.i32).V;
 ret.V ;
-}
-
-.method public getFooIns().Foo {
-tmp0.Foo :=.Foo new(Foo).Foo;
-invokespecial(tmp0.Foo, "").V;
-res.Foo :=.Foo tmp0.Foo;
-ret.Foo res.Foo;
-}
-
-.method public test().i32 {
-tmp1.Foo :=.Foo invokevirtual(this.Foo, "getFooIns").Foo;
-res.Foo :=.Foo tmp1.Foo;
-ret.i32 0.i32;
 }
 
 .construct Foo().V {
