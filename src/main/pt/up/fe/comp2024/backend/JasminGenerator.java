@@ -30,6 +30,8 @@ public class JasminGenerator {
 
     Method currentMethod;
 
+    boolean needsPop = false;
+
     private final FunctionClassMap<TreeNode, String> generators;
 
     public JasminGenerator(OllirResult ollirResult) {
@@ -157,18 +159,18 @@ public class JasminGenerator {
         code.append(TAB).append(".limit locals 99").append(NL);
 
         for (var inst : method.getInstructions()) {
+
+            if((inst instanceof CallInstruction) && ((CallInstruction) inst).getReturnType().getTypeOfElement() != ElementType.VOID
+                    && ( ((CallInstruction) inst).getInvocationType() == CallType.invokestatic ||
+                    ((CallInstruction) inst).getInvocationType() == CallType.invokevirtual ) ){
+                //code.append("pop").append(NL);
+                this.needsPop = true;
+            }
+
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
 
             code.append(instCode);
-
-            if(inst.getInstType() == InstructionType.CALL && ((CallInstruction) inst).getReturnType().getTypeOfElement() == ElementType.VOID
-            && ( ((CallInstruction) inst).getInvocationType() == CallType.invokestatic || ((CallInstruction) inst).getInvocationType() == CallType.invokevirtual ) ){
-                //code.append("pop").append(NL);
-
-            }
-
-
         }
 
         code.append(".end method\n");
@@ -181,6 +183,13 @@ public class JasminGenerator {
 
     private String generateAssign(AssignInstruction assign) {
         var code = new StringBuilder();
+
+        if(assign.getRhs() instanceof CallInstruction){
+            if (((CallInstruction) assign.getRhs()).getInvocationType() == CallType.invokevirtual || ((CallInstruction) assign.getRhs()).getInvocationType() == CallType.invokestatic){
+                this.needsPop = false;
+            }
+
+        }
 
         // generate code for loading what's on the right
         code.append(generators.apply(assign.getRhs()));
@@ -360,14 +369,11 @@ public class JasminGenerator {
         if(callInstruction.getInvocationType() == CallType.NEW){
             var name = callInstruction.getCaller().getType().getTypeOfElement() == ElementType.THIS ?
                     ((ClassType) callInstruction.getCaller().getType()).getName() : getImportedClassName(((ClassType) callInstruction.getCaller().getType()).getName());
-            for(String imported : ollirResult.getOllirClass().getImports()){
-                if(imported.endsWith("." + name)) {
-                    name = imported.replace(".", "/");
-                }
-            }
             var instance = "new " + name;
 
-            code.append(instance).append(NL).append("dup").append(NL);
+            this.needsPop = true;
+
+            return code.append(instance).append(NL).append("dup").append(NL).toString();
         }
         else if(callInstruction.getInvocationType() == CallType.invokespecial){
             var load = generators.apply(callInstruction.getCaller());
@@ -416,13 +422,20 @@ public class JasminGenerator {
                 args.append(getTypeSignature(parameter.getType()));
             }
 
-            var name = this.getImportedClassName(((Operand) callInstruction.getCaller()).getName()) + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
+            var name = callInstruction.getCaller().getType().getTypeOfElement() == ElementType.THIS ?
+                    ((ClassType) callInstruction.getCaller().getType()).getName() : this.getImportedClassName(((Operand) callInstruction.getCaller()).getName())
+                    + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
             var invoke = callInstruction.getInvocationType().name() + " " + name + "(" + args + ")" + getTypeSignature(callInstruction.getReturnType());
             code.append(loads).append(invoke).append(NL);
 
         }
 
         //outros???
+
+        if (this.needsPop){
+            code.append("pop").append(NL);
+            this.needsPop = false;
+        }
 
         return code.toString();
     }
