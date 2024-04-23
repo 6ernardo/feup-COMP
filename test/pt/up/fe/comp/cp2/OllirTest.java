@@ -69,6 +69,16 @@ public class OllirTest {
                 this::compileArrayAccessAndAllocation);
     }
 
+    @Test
+    public void compileVarArgs(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileVarArgs.jmm", this::compileVarArgs);
+    }
+
+    @Test
+    public void compileArrayInit(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileArrayInit.jmm", this::compileArrayInit);
+    }
+
     public static void testJmmCompilation(String resource, Consumer<ClassUnit> ollirTester, String executionOutput) {
 
         // If AstToJasmin pipeline, generate Jasmin
@@ -221,7 +231,7 @@ public class OllirTest {
 
     // Adding Tests
     public void compileMisc(ClassUnit classUnit){
-
+        // For testing purposes
     }
 
     public void compileIfElse(ClassUnit classUnit) {
@@ -363,6 +373,32 @@ public class OllirTest {
         assertNotNull("Could not find method " + methodName, methodMain);
 
         // TODO: check for an instance of an array access expression
+    }
+
+    public void compileVarArgs(ClassUnit classUnit){
+        // Test name of the Class
+        assertEquals("Class name not what was expected", "CompileVarArgs", classUnit.getClassName());
+
+        // Test main
+        var methodName = "main";
+        Method methodMain = classUnit.getMethods().stream()
+                .filter(method -> method.getMethodName().equals(methodName))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull("Could not find method " + methodName, methodMain);
+
+        // check for an instance of a call instruction with varargs
+
+        // TODO: check for an instance of a call instruction with varargs
+    }
+
+
+    public void compileArrayInit(ClassUnit classUnit){
+        // Test name of the Class
+        assertEquals("Class name not what was expected", "CompileArrayInit", classUnit.getClassName());
+
+        // TODO: check for an instance of an array initialization expression
     }
 
 }

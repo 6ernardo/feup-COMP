@@ -24,12 +24,14 @@ public class IncompatibleArguments extends AnalysisVisitor {
         return null;
     }
 
+
     private Void visitMethodCall(JmmNode methodCall, SymbolTable table) {
 
         // Method is a declared method, return
         var methodDeclName = methodCall.get("name");
         if (table.getMethods().stream()
                 .noneMatch(methodDecl -> methodDecl.equals(methodDeclName))) {
+            methodCall.putObject("isVarArgsUsed", false);
             return null;
         }
 
@@ -50,9 +52,11 @@ public class IncompatibleArguments extends AnalysisVisitor {
             return null;
         }
 
+        boolean isVarArgs = (boolean) parameters.get(parameters.size()-1).getType().getObject("isVarArgs");
+
         boolean excessArgs = false;
         if (arguments.size()-1 > parameters.size()){
-            if (!(boolean) parameters.get(parameters.size()-1).getType().getObject("isVarArgs")){
+            if (!isVarArgs){
                 // check if there were too many arguments
                 var message = "Method " + methodCall.get("name") + " requires only " + parameters.size() +
                         " arguments but " + (arguments.size() - 1) + " were provided.";
@@ -68,6 +72,8 @@ public class IncompatibleArguments extends AnalysisVisitor {
                 excessArgs = true;
             }
         }
+
+        var isVarArgsUsed = excessArgs;
 
         // Check all the params
         for (int i = 1; i < arguments.size(); i++) {
@@ -92,7 +98,18 @@ public class IncompatibleArguments extends AnalysisVisitor {
             }
             var paramType = parameters.get(i-1).getType();
 
-            if (!paramType.equals(argType)) {
+            boolean createReport = true;
+            if (paramType.equals(argType)){
+                createReport = false;
+            }else if (i == parameters.size() && isVarArgs){
+                var paramElementType = new Type(paramType.getName(), false);
+                if (paramElementType.equals(argType)){
+                    createReport = false;
+                    isVarArgsUsed = true;
+                }
+            }
+
+            if (createReport) {
                 // Create error report
                 var message = "Incompatible argument type. Expected " + methodCall + " but got " + methodCall;
                 addReport(Report.newError(
@@ -104,6 +121,8 @@ public class IncompatibleArguments extends AnalysisVisitor {
                 );
             }
         }
+
+        methodCall.putObject("isVarArgsUsed", isVarArgsUsed);
 
         return null;
     }

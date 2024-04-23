@@ -69,10 +69,10 @@ program
     ;
 
 importDecl
-    : IMPORT names+=(ID|MAIN) (PERIOD names+=(ID|MAIN))* SEMI;
+    : IMPORT names+=(ID | MAIN | STRING) (PERIOD names+=(ID | MAIN | STRING))* SEMI;
 
 classDecl
-    : CLASS name=(ID|MAIN) (EXTENDS superclass=ID)?
+    : CLASS name=(ID | MAIN | STRING) (EXTENDS superclass=ID)?
         LCURLY
         varDecl*
         methodDecl*
@@ -80,7 +80,7 @@ classDecl
     ;
 
 varDecl
-    : type name=(ID | MAIN) SEMI
+    : type name=(ID | MAIN | STRING) SEMI
     ;
 
 type locals[boolean isArray=false, boolean isVarArgs=false]
@@ -89,7 +89,7 @@ type locals[boolean isArray=false, boolean isVarArgs=false]
     | name=INT
     | name=BOOLEAN
     | name=STRING
-    | name=(ID | MAIN)
+    | name=(ID | MAIN | STRING)
     ;
 
 returnStmt
@@ -120,7 +120,7 @@ mainReturnType locals[boolean isArray=false, boolean isVarArgs=false]
     : name= VOID;
 
 param
-    : type name=(ID | MAIN)
+    : type name=(ID | MAIN | STRING)
     ;
 
 stmt
@@ -128,19 +128,19 @@ stmt
     | IF LPAREN expr RPAREN stmt ELSE stmt #IfStmt
     | WHILE LPAREN expr RPAREN stmt #WhileStmt
     | expr SEMI #ExprStmt
-    | name=(ID | MAIN) EQUALS expr SEMI #AssignStmt
-    | name=(ID | MAIN) LBRACK expr RBRACK EQUALS expr SEMI #ArrayAssignStmt
+    | name=(ID | MAIN | STRING) EQUALS expr SEMI #AssignStmt
+    | name=(ID | MAIN | STRING) LBRACK expr RBRACK EQUALS expr SEMI #ArrayAssignStmt
     ;
 
 expr
     : LPAREN expr RPAREN #ParenExpr
     | value=INTEGER #IntegerLiteral
     | name=(TRUE |FALSE) #BoolLiteral
-    | name=(ID|MAIN) #VarRefExpr
+    | name=(ID | MAIN | STRING) #VarRefExpr
     | THIS #ThisLiteral
     | LBRACK (expr (COMMA expr)*)? RBRACK #ArrayCreationExpr
     | expr LBRACK expr RBRACK #ArrayAccessExpr
-    | expr PERIOD name=(ID | MAIN) LPAREN (expr (COMMA expr)*)? RPAREN #MethodCallExpr
+    | expr PERIOD name=(ID | MAIN | STRING) LPAREN (expr (COMMA expr)*)? RPAREN #MethodCallExpr
     | NEW name=INT LBRACK expr RBRACK #NewArrayExpr
     | NEW name=ID LPAREN RPAREN #NewExpr
     | expr PERIOD name=ID #ArrayLengthExpr

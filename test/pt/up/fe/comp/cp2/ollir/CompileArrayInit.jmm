@@ -1,0 +1,14 @@
+
+class CompileArrayInit {
+    int foo( int[] a) {
+        return 0;
+    }
+
+    int bar () {
+        int[] a;
+
+        a = [8*78, 9, 0];
+
+        return this.foo([1,2,3]);
+    }
+}

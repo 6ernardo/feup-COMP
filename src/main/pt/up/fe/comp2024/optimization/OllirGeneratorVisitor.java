@@ -356,25 +356,37 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         var typeCode = OptUtils.toOllirType(node.getJmmChild(0));
         var id = node.get("name");
 
-        String code = id + typeCode;
-
-        return code;
+        return id + typeCode;
     }
 
+    private boolean isMethodVarArgs(String method){
+        // check if the last param is a varArgs
+        var params = table.getParameters(method);
+        if (params.isEmpty()) return false;
+
+        var lastParam = params.get(params.size()-1);
+
+        var lastParamType = lastParam.getType();
+        return (boolean) lastParamType.getObject("isVarArgs");
+    }
 
     private String visitMethodDecl(JmmNode node, Void unused) {
 
         StringBuilder code = new StringBuilder(".method ");
         var name = node.get("name");
 
-        boolean isPublic = NodeUtils.getBooleanAttribute(node, "isPublic", "false");
+        boolean isPublic = node.get("isPublic").equals("true");
 
         if (isPublic) {
             code.append("public ");
         }
 
-        if (name.equals("main")) {
+        if (node.get("isStatic").equals("true")) {
             code.append("static ");
+        }
+
+        if (isMethodVarArgs(name)) {
+            code.append("varargs ");
         }
 
         // name

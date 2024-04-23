@@ -43,6 +43,8 @@ public class JmmSymbolTableBuilder {
         for (var child : root.getChildren(Kind.IMPORT_DECL)) {
 
             // get last import name
+            // ignore warning
+            @SuppressWarnings("unchecked")
             var impNames = (ArrayList<String>)child.getObject("names");
 
 
@@ -104,7 +106,9 @@ public class JmmSymbolTableBuilder {
             if (methodName.equals("main")){
                 var paramName = method.get("paramName");
                 List<Symbol> paramsList = new ArrayList<>();
-                paramsList.add(new Symbol(new Type("String", true), paramName));
+                var stringType = new Type("String", true);
+                stringType.putObject("isVarArgs", false);
+                paramsList.add(new Symbol(stringType, paramName));
                 map.put(methodName, paramsList);
                 continue;
             }

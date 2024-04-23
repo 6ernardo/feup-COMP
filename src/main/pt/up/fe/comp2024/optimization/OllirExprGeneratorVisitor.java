@@ -4,6 +4,7 @@ import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
+import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
 import java.util.List;
@@ -38,8 +39,62 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(NEW_ARRAY_EXPR, this::visitNewArrayExpr);
         addVisit(ARRAY_LENGTH_EXPR, this::visitArrayLengthExpr);
         addVisit(ARRAY_ACCESS_EXPR, this::visitArrayAccessExpr);
+        addVisit(ARRAY_CREATION_EXPR, this::visitArrayInitExpr);
 
         setDefaultVisit(this::defaultVisit);
+    }
+
+    private OllirExprResult visitArrayInitExpr(JmmNode node, Void unused) {
+        StringBuilder computation = new StringBuilder();
+        StringBuilder code = new StringBuilder();
+
+        // get the type of the array
+        Type type = TypeUtils.getExprType(node, table);
+        Type elementType = new Type(type.getName(), false);
+        String ollirType = OptUtils.toOllirType(elementType);
+
+        // get the expressions
+        List<JmmNode> exprs = node.getChildren();
+
+        // create the array
+        OllirExprResult arrayResult = createArray(exprs, elementType);
+        computation.append(arrayResult.getComputation());
+
+        // add the array to the code
+        code.append(arrayResult.getCode());
+
+        return new OllirExprResult(code.toString(), computation.toString());
+    }
+
+    private OllirExprResult createArray(List<JmmNode> exprs, Type elementType){
+        StringBuilder computation = new StringBuilder();
+        StringBuilder code = new StringBuilder();
+
+        // get the ollir type
+        String ollirType = OptUtils.toOllirType(elementType);
+
+        // create the array
+        String arrayVar = OptUtils.getTemp();
+        computation.append(arrayVar).append(".array").append(ollirType);
+        computation.append(SPACE);
+        computation.append(ASSIGN).append(".array").append(ollirType);
+        computation.append(SPACE);
+        computation.append("new(array, ").append(exprs.size()).append(".i32").append(").array").append(ollirType);
+        computation.append(END_STMT);
+
+        // assign the values to the array
+        for (int i = 0; i < exprs.size(); i++){
+            OllirExprResult exprResult = visit(exprs.get(i));
+            computation.append(exprResult.getComputation());
+            computation.append(arrayVar).append("[").append(i)
+                    .append(".i32").append("]").append(ollirType).append(SPACE);
+            computation.append(ASSIGN).append(ollirType).append(SPACE).append(exprResult.getCode()).append(END_STMT);
+        }
+
+        // add the array to the code
+        code.append(arrayVar).append(".array").append(ollirType);
+
+        return new OllirExprResult(code.toString(), computation.toString());
     }
 
     private OllirExprResult visitArrayAccessExpr(JmmNode node, Void unused) {
@@ -157,10 +212,36 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         JmmNode target = argumentsExpr.remove(0);
 
         // compute the arguments
-        for (JmmNode argument : argumentsExpr){
-            OllirExprResult argumentResult = visit(argument);
-            computation.append(argumentResult.getComputation());
-            paramCodes.append(", ").append(argumentResult.getCode());
+        var isVarArgsUsed = NodeUtils.getBooleanAttribute(node, "isVarArgsUsed", "false");
+
+        if (isVarArgsUsed){
+            // if varargs is used we need to remove the last argument
+            var argumentsSize = argumentsExpr.size();
+            var parameters = table.getParameters(nameOfTheFunction);
+            var parametersSize = parameters.size();
+
+            for (int i = 0; i < parametersSize-1; i++){
+                OllirExprResult argumentResult = visit(argumentsExpr.get(i));
+                computation.append(argumentResult.getComputation());
+                paramCodes.append(", ").append(argumentResult.getCode());
+            }
+
+            // get the last argument type
+            var lastArgumentType = parameters.get(parametersSize-1).getType();
+            var elementType = new Type(lastArgumentType.getName(), false);
+            var listOfExprs = argumentsExpr.subList(parametersSize-1, argumentsSize);
+
+            OllirExprResult arrayResult = createArray(listOfExprs, elementType);
+
+            computation.append(arrayResult.getComputation());
+            paramCodes.append(", ").append(arrayResult.getCode());
+
+        }else {
+            for (JmmNode argument : argumentsExpr) {
+                OllirExprResult argumentResult = visit(argument);
+                computation.append(argumentResult.getComputation());
+                paramCodes.append(", ").append(argumentResult.getCode());
+            }
         }
 
         OllirExprResult targetResult = visit(target);

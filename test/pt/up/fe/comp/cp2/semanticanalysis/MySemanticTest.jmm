@@ -1,4 +1,5 @@
 import io;
+import String;
 
 class CompileArrayAccessAndAllocation {
 
