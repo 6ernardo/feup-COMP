@@ -37,10 +37,36 @@ public class OllirTest {
         testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileAssignment.jmm", this::compileAssignment);
     }
 
-    // added this test
+    // added these tests
     @Test
     public void compileMisc(){
         testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileMisc.jmm", this::compileMisc);
+    }
+
+    @Test
+    public void compileIfElse(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileIfElse.jmm", this::compileIfElse);
+    }
+
+    @Test
+    public void compileWhile(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileWhile.jmm", this::compileWhile);
+    }
+
+    @Test
+    public void compileNewArray(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileNewArray.jmm", this::compileNewArray);
+    }
+
+    @Test
+    public void compileArrayLength() {
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileArrayLength.jmm", this::compileArrayLength);
+    }
+
+    @Test
+    public void compileArrayAccessAndAllocation() {
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileArrayAccessAndAllocation.jmm",
+                this::compileArrayAccessAndAllocation);
     }
 
     public static void testJmmCompilation(String resource, Consumer<ClassUnit> ollirTester, String executionOutput) {
@@ -76,10 +102,6 @@ public class OllirTest {
 
     public static void testJmmCompilation(String resource, Consumer<ClassUnit> ollirTester) {
         testJmmCompilation(resource, ollirTester, null);
-    }
-
-    public void compileMisc(ClassUnit classUnit){
-
     }
 
     public void compileBasic(ClassUnit classUnit) {
@@ -198,4 +220,149 @@ public class OllirTest {
 
 
     // Adding Tests
+    public void compileMisc(ClassUnit classUnit){
+
+    }
+
+    public void compileIfElse(ClassUnit classUnit) {
+        // Test name of the class
+        assertEquals("Class name not what was expected", "CompileIfElse", classUnit.getClassName());
+
+        // Test main
+        var methodName = "main";
+        Method methodMain = classUnit.getMethods().stream()
+                .filter(method -> method.getMethodName().equals(methodName))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull("Could not find method " + methodName, methodMain);
+
+        // check for an instance of a BRANCH instruction
+
+        var branchInst = methodMain.getInstructions().stream()
+                .filter(inst -> inst instanceof SingleOpCondInstruction)
+                .map(SingleOpCondInstruction.class::cast)
+                .toList();
+
+        assertEquals("Wrong number of Branch Instructions in method " + methodName,
+                1, branchInst.size());
+
+        // check for an instance of a GOTO instruction
+
+        var gotoInst = methodMain.getInstructions().stream()
+                .filter(inst -> inst instanceof GotoInstruction)
+                .map(GotoInstruction.class::cast)
+                .toList();
+
+        assertEquals("Wrong number of Goto Instructions in method " + methodName,
+        1, gotoInst.size());
+
+        // check number of labels
+
+        var labels = methodMain.getLabels().size();
+        assertEquals("Wrong number of labels in method " + methodName,
+                2, labels);
+    }
+
+    public void compileWhile(ClassUnit classUnit){
+        // Test name of the Class
+        assertEquals("Class name not what was expected", "CompileWhile", classUnit.getClassName());
+
+        // Test main
+        var methodName = "main";
+        Method methodMain = classUnit.getMethods().stream()
+                .filter(method -> method.getMethodName().equals(methodName))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull("Could not find method " + methodName, methodMain);
+
+        // check for an instance of a BRANCH instruction
+
+        var branchInst = methodMain.getInstructions().stream()
+                .filter(inst -> inst instanceof SingleOpCondInstruction)
+                .map(SingleOpCondInstruction.class::cast)
+                .toList();
+
+        assertEquals("Wrong number of Branch Instructions in method " + methodName,
+                1, branchInst.size());
+
+        // check for an instance of a GOTO instruction
+
+        var gotoInst = methodMain.getInstructions().stream()
+                .filter(inst -> inst instanceof GotoInstruction)
+                .map(GotoInstruction.class::cast)
+                .toList();
+
+        assertEquals("Wrong number of Goto Instructions in method " + methodName,
+                1, gotoInst.size());
+
+        // check number of labels
+
+        var labels = methodMain.getLabels().size();
+        assertEquals("Wrong number of labels in method " + methodName,
+                2, labels);
+
+
+    }
+
+    public void compileNewArray(ClassUnit classUnit) {
+        // Test name of the Class
+        assertEquals("Class name not what was expected", "CompileNewArray", classUnit.getClassName());
+
+        // Test main
+        var methodName = "main";
+        Method methodMain = classUnit.getMethods().stream()
+                .filter(method -> method.getMethodName().equals(methodName))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull("Could not find method " + methodName, methodMain);
+
+        // check for an instance of a new array expression
+
+        var newArrayInst = methodMain.getInstructions().stream()
+                .filter(inst -> inst instanceof AssignInstruction &&
+                        ((AssignInstruction) inst).getRhs() instanceof CallInstruction &&
+                        ((CallInstruction) ((AssignInstruction) inst).getRhs()).getReturnType() instanceof ArrayType
+                ).findFirst();
+
+        assertTrue("Could not find a new array instruction in method " + methodName, newArrayInst.isPresent());
+
+    }
+
+    public void compileArrayLength(ClassUnit classUnit){
+
+        // Test name of the Class
+        assertEquals("Class name not what was expected", "CompileArrayLength", classUnit.getClassName());
+
+        // Test main
+        var methodName = "main";
+        Method methodMain = classUnit.getMethods().stream()
+                .filter(method -> method.getMethodName().equals(methodName))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull("Could not find method " + methodName, methodMain);
+
+        // TODO: check for an instance of an array length expression
+
+    }
+
+    public void compileArrayAccessAndAllocation(ClassUnit classUnit){
+        // Test name of the Class
+        assertEquals("Class name not what was expected", "CompileArrayAccessAndAllocation", classUnit.getClassName());
+
+        // Test main
+        var methodName = "main";
+        Method methodMain = classUnit.getMethods().stream()
+                .filter(method -> method.getMethodName().equals(methodName))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull("Could not find method " + methodName, methodMain);
+
+        // TODO: check for an instance of an array access expression
+    }
+
 }

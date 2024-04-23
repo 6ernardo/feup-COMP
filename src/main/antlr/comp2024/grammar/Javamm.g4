@@ -84,12 +84,12 @@ varDecl
     ;
 
 type locals[boolean isArray=false, boolean isVarArgs=false]
-    : name= INT LBRACK RBRACK {$isArray=true;}
-    | name= INT ELLIPSIS {$isVarArgs=true; $isArray=true;}
-    | name= INT
-    | name= BOOLEAN
-    | name= STRING
-    | name= (ID | MAIN)
+    : name=INT LBRACK RBRACK {$isArray=true;}
+    | name=INT ELLIPSIS {$isVarArgs=true; $isArray=true;}
+    | name=INT
+    | name=BOOLEAN
+    | name=STRING
+    | name=(ID | MAIN)
     ;
 
 returnStmt

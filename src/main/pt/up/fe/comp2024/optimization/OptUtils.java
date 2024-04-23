@@ -14,10 +14,16 @@ import static pt.up.fe.comp2024.ast.Kind.TYPE;
 
 public class OptUtils {
     private static int tempNumber = -1;
+    private static int labelNumber = -1;
 
     public static String getTemp() {
 
         return getTemp("tmp");
+    }
+
+    public static String getLabel() {
+        labelNumber += 1;
+        return "label" + labelNumber;
     }
 
     public static String getTemp(String prefix) {
@@ -66,7 +72,7 @@ public class OptUtils {
         String type = "." + switch (typeName) {
             case "int" -> "i32";
             case "boolean" -> "bool";
-            case "String" -> "string";
+            case "String" -> "String";
             case "void" -> "V";
             default -> typeName;
         };

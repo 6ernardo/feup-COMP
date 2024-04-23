@@ -1,0 +1,14 @@
+import io;
+
+class CompileNewArray{
+
+    public static void main(String[] args) {
+        int i;
+        int j;
+        int[] a;
+
+        // test array initialization
+        a = new int[10];
+
+    }
+}

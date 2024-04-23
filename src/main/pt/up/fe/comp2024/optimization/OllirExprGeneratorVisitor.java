@@ -4,8 +4,6 @@ import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
-import pt.up.fe.comp.jmm.ollir.OllirUtils;
-import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
 import java.util.List;
@@ -37,8 +35,97 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(NEW_EXPR, this::visitNewExpr);
         addVisit(BOOL_LITERAL, this::visitBool);
         addVisit(PAREN_EXPR, this::visitParenExpr);
+        addVisit(NEW_ARRAY_EXPR, this::visitNewArrayExpr);
+        addVisit(ARRAY_LENGTH_EXPR, this::visitArrayLengthExpr);
+        addVisit(ARRAY_ACCESS_EXPR, this::visitArrayAccessExpr);
 
         setDefaultVisit(this::defaultVisit);
+    }
+
+    private OllirExprResult visitArrayAccessExpr(JmmNode node, Void unused) {
+        StringBuilder computation = new StringBuilder();
+        StringBuilder code = new StringBuilder();
+
+        // get temp variable
+        String tempVar = OptUtils.getTemp();
+
+        // extract expressions
+        var arrayExpr = node.getJmmChild(0);
+        var indexExpr = node.getJmmChild(1);
+
+        // visit the expressions
+        OllirExprResult arrayResult = visit(arrayExpr);
+        OllirExprResult indexResult = visit(indexExpr);
+
+        // add computation
+        computation.append(indexResult.getComputation());
+        computation.append(arrayResult.getComputation());
+
+        // get type of element in array
+        Type type = TypeUtils.getExprType(node, table);
+        String ollirType = OptUtils.toOllirType(type);
+
+        // add instruction : tmp.type :=.type var.array.type[index.i32].type;
+        computation.append(tempVar).append(ollirType).append(SPACE);
+        computation.append(ASSIGN).append(ollirType).append(SPACE);
+        computation.append(arrayResult.getCode()).append("[");
+        computation.append(indexResult.getCode()).append("]").append(ollirType).append(END_STMT);
+
+        // add temp variable to code
+        code.append(tempVar).append(ollirType);
+
+        return new OllirExprResult(code.toString(), computation.toString());
+    }
+
+    private OllirExprResult visitArrayLengthExpr(JmmNode node, Void unused){
+        StringBuilder computation = new StringBuilder();
+        StringBuilder code = new StringBuilder();
+
+        // get the array expression
+        var arrayExpr = node.getJmmChild(0);
+
+        // visit the array expression
+        OllirExprResult arrayResult = visit(arrayExpr);
+        computation.append(arrayResult.getComputation());
+
+        // add instruction : tmp.i32 :=.i32 arraylength(arrayResult.code).i32;
+        String tempVar = OptUtils.getTemp();
+        computation.append(tempVar).append(".i32").append(SPACE).append(ASSIGN).append(".i32").append(SPACE)
+                .append("arraylength(").append(arrayResult.getCode()).append(").i32").append(END_STMT);
+
+        // add temp variable to code
+        code.append(tempVar).append(".i32");
+
+        return new OllirExprResult(code.toString(), computation.toString());
+    }
+
+    private OllirExprResult visitNewArrayExpr(JmmNode node, Void unused) {
+        StringBuilder computation = new StringBuilder();
+        StringBuilder code = new StringBuilder();
+
+        // extract node and type
+        var sizeExpr = node.getJmmChild(0);
+        var type = new Type(node.get("name"), false);
+
+        // compute the size
+        OllirExprResult sizeResult = visit(sizeExpr);
+        computation.append(sizeResult.getComputation());
+
+        // get temp variable
+        String tempVar = OptUtils.getTemp();
+        String ollirType = OptUtils.toOllirType(type);
+
+        // create the array with intruction : tmp.array.type :=.array.type new(array,size.i32).array.type
+        computation.append(tempVar).append(".array").append(ollirType);
+        computation.append(SPACE);
+        computation.append(ASSIGN).append(".array").append(ollirType);
+        computation.append(SPACE);
+        computation.append("new(array, ").append(sizeResult.getCode()).append(").array").append(ollirType);
+        computation.append(END_STMT);
+
+        // add temp variable to code
+        code.append(tempVar).append(".array").append(ollirType);
+        return new OllirExprResult(code.toString(), computation.toString());
     }
 
     private OllirExprResult visitParenExpr(JmmNode node, Void unused) {
@@ -250,7 +337,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                 .append(SPACE).append("new(").append(className).append(")").append(type).append(END_STMT);
 
         // call the constructor
-        computation.append("invokespecial(").append(nt).append(", \"\").V").append(END_STMT);
+        computation.append("invokespecial(").append(nt).append(", \"<init>\").V").append(END_STMT);
 
         // code is the temp variable
         code.append(nt);

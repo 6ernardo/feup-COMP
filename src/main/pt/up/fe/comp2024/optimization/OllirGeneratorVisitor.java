@@ -22,6 +22,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     private final String NL = "\n";
     private final String L_BRACKET = " {\n";
     private final String R_BRACKET = "}\n";
+    private final String L_PAREN = "(";
+    private final String R_PAREN = ")";
+    private final String DOUBLE_DOT = ":";
 
 
     private final SymbolTable table;
@@ -32,7 +35,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         this.table = table;
         exprVisitor = new OllirExprGeneratorVisitor(table);
     }
-
 
     @Override
     protected void buildVisitor() {
@@ -46,13 +48,167 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(IMPORT_DECL, this::visitImportDecl);
         addVisit(VAR_DECL, this::visitVarDecl);
         addVisit(EXPR_STMT, this::visitExprStmt);
+        addVisit(IF_STMT, this::visitIfStmt);
+        addVisit(BLOCK_STMT, this::visitBlockStmt);
+        addVisit(WHILE_STMT, this::visitWhileStmt);
+        addVisit(ARRAY_ASSIGN_STMT, this::visitArrayAssignStmt);
 
         setDefaultVisit(this::defaultVisit);
+    }
+
+    private String visitArrayAssignStmt(JmmNode node, Void unused){
+        /*
+        Structure:
+        code to compute index
+        code to compute value
+        var[index.code].type :=.type value.code;
+         */
+
+        StringBuilder code = new StringBuilder();
+
+        // extract info
+        var indexExpr = node.getJmmChild(0);
+        var valueExpr = node.getJmmChild(1);
+        var id = node.get("name");
+
+        // visit exprs
+        var indexRes = exprVisitor.visit(indexExpr);
+        var valueRes = exprVisitor.visit(valueExpr);
+
+        // add computation
+        code.append(indexRes.getComputation());
+        code.append(valueRes.getComputation());
+
+        // get type of assigment
+        Type assignType = TypeUtils.getStmtType(node, table);
+        Type elementType = new Type(assignType.getName(), false);
+        String assignTypeString = OptUtils.toOllirType(elementType);
+
+        // write assignment
+        code.append(id).append("[").append(indexRes.getCode()).append("]").append(assignTypeString);
+        code.append(SPACE).append(ASSIGN).append(assignTypeString).append(SPACE);
+        code.append(valueRes.getCode()).append(END_STMT);
+
+        return code.toString();
+    }
+
+    private String visitWhileStmt(JmmNode whileStmt, Void unused){
+        /*
+        Structure:
+        goto condLabel;
+        while_start:
+        code to compute stmt
+        condLabel:
+        code to compute condition
+        if condition.code goto while_start;
+         */
+
+        StringBuilder code = new StringBuilder();
+
+        // get label
+        var condLabel = OptUtils.getLabel();
+        var stmtLabel = OptUtils.getLabel();
+
+        // extract nodes
+        var conditionNode = whileStmt.getJmmChild(0); // expr
+        var stmtNode = whileStmt.getJmmChild(1); // stmt
+
+        // add goto
+        code.append("goto").append(SPACE).append(condLabel).append(END_STMT);
+
+        // add label
+        code.append(stmtLabel);
+        code.append(DOUBLE_DOT);
+        code.append(NL);
+
+        // add stmt
+        var stmt = visit(stmtNode);
+        code.append(stmt);
+
+        // add label
+        code.append(condLabel);
+        code.append(DOUBLE_DOT);
+        code.append(NL);
+
+        // add condition
+        var condition = exprVisitor.visit(conditionNode);
+        code.append(condition.getComputation());
+        code.append("if").append(SPACE).append(L_PAREN); //if (
+        code.append(condition.getCode()); // condition.code
+        code.append(R_PAREN).append(SPACE).append("goto").append(SPACE); // ) goto
+        code.append(stmtLabel).append(END_STMT); // while_start;
+
+        return code.toString();
+    }
+
+    private String visitBlockStmt(JmmNode blockNode, Void unused) {
+        StringBuilder code = new StringBuilder();
+
+        for (var child : blockNode.getChildren()) {
+            code.append(visit(child));
+        }
+
+        return code.toString();
     }
 
     private String visitExprStmt(JmmNode node, Void unused) {
         var expr = exprVisitor.visit(node.getJmmChild(0));
         return expr.getComputation();
+    }
+
+    private String visitIfStmt(JmmNode node, Void unused){
+        StringBuilder code = new StringBuilder();
+
+        // extract ASY nodes
+        var conditionNode = node.getJmmChild(0); // expr
+        var thenNode = node.getJmmChild(1); // stmt
+        var elseNode = node.getJmmChild(2); // stmt
+
+        // get computation
+        var condition = exprVisitor.visit(conditionNode);
+        code.append(condition.getComputation());
+
+        // get a label
+        var thenLabel = OptUtils.getLabel();
+
+        // add jump : if condition.code goto label;
+        code.append("if");
+        code.append(SPACE);
+        code.append(L_PAREN);
+        code.append(condition.getCode());
+        code.append(R_PAREN);
+        code.append(SPACE);
+        code.append("goto");
+        code.append(SPACE);
+        code.append(thenLabel);
+        code.append(END_STMT);
+
+        // add else stmt
+        var elseRes = visit(elseNode);
+        code.append(elseRes);
+
+        // add goto for outside the if : goto label;
+        var endLabel = OptUtils.getLabel();
+        code.append("goto");
+        code.append(SPACE);
+        code.append(endLabel);
+        code.append(END_STMT);
+
+        // add then label
+        code.append(thenLabel);
+        code.append(DOUBLE_DOT);
+        code.append(NL);
+
+        // add then stmt
+        var thenRes = visit(thenNode);
+        code.append(thenRes);
+
+        // add end label
+        code.append(endLabel);
+        code.append(DOUBLE_DOT);
+        code.append(NL);
+
+        return code.toString();
     }
 
     private String visitVarDecl(JmmNode node, Void unused) {
@@ -141,7 +297,11 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     }
 
     private boolean isAssigningField(JmmNode node){
-        var methodNode = node.getParent();
+        var methodNodeOp = node.getAncestor(METHOD_DECL);
+
+        if (methodNodeOp.isEmpty()) return false;
+
+        var methodNode = methodNodeOp.get();
         var methodName = methodNode.get("name");
         var assignName = node.get("name");
 
