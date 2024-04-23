@@ -1,0 +1,16 @@
+import b.asmth;
+import a.smth;
+Main {
+
+
+.method public static main(args.array.String).V {
+tmp0.smth :=.smth new(smth).smth;
+invokespecial(tmp0.smth, "").V;
+a.smth :=.smth tmp0.smth;
+ret.V ;
+}
+
+.construct Main().V {
+invokespecial(this, "").V;
+}
+}

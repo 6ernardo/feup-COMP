@@ -10,6 +10,8 @@ import pt.up.fe.specs.util.utilities.StringLines;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
@@ -145,7 +147,6 @@ public class JasminGenerator {
         methodSignature.append("(");
         for (Element parameter : method.getParams()){
             var paramType = parameter.getType();
-            var paramTypeSignature = getTypeSignature(paramType);
             methodSignature.append(getTypeSignature(paramType));
         }
         methodSignature.append(")");
@@ -156,14 +157,20 @@ public class JasminGenerator {
 
         // Add limits
         code.append(TAB).append(".limit stack 99").append(NL);
-        code.append(TAB).append(".limit locals 99").append(NL);
+
+        Set<Integer> regs = new TreeSet<>();
+        regs.add(0);
+        for(Descriptor var : method.getVarTable().values()){
+            regs.add(var.getVirtualReg());
+        }
+
+        code.append(TAB).append(".limit locals " + regs.size()).append(NL);
 
         for (var inst : method.getInstructions()) {
 
             if((inst instanceof CallInstruction) && ((CallInstruction) inst).getReturnType().getTypeOfElement() != ElementType.VOID
                     && ( ((CallInstruction) inst).getInvocationType() == CallType.invokestatic ||
                     ((CallInstruction) inst).getInvocationType() == CallType.invokevirtual ) ){
-                //code.append("pop").append(NL);
                 this.needsPop = true;
             }
 
@@ -204,15 +211,14 @@ public class JasminGenerator {
         var operand = (Operand) lhs;
 
         // get register
-        var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+        var reg_number = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+        var reg = reg_number < 4 ? "_" + reg_number : " " + reg_number;
 
-        // TODO: Hardcoded for int type, needs to be expanded
-        //code.append("istore ").append(reg).append(NL);
         code.append(
                 switch (assign.getTypeOfAssign().getTypeOfElement()) {
                     case INT32, BOOLEAN -> currentMethod.getVarTable().get(operand.getName()).getVarType().getTypeOfElement()
-                            == ElementType.ARRAYREF ? "iastore " : "istore ";
-                    case OBJECTREF, THIS, STRING, ARRAYREF -> "astore ";
+                            == ElementType.ARRAYREF ? "iastore" : "istore";
+                    case OBJECTREF, THIS, STRING, ARRAYREF -> "astore";
                     default -> "error";
                 }
         ).append(reg).append(NL).append(NL);
@@ -242,22 +248,23 @@ public class JasminGenerator {
 
             result += (value == -1) ? "m1" : value;
         }
-        return result+=NL;
+        return result + NL;
     }
 
     private String generateOperand(Operand operand) {
         // get register
-        var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+        var reg_number = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+        var reg = reg_number < 4 ? "_" + reg_number : " " + reg_number;
 
         switch (operand.getType().getTypeOfElement()) {
             case THIS -> {
                 return "aload_0" + NL;
             }
             case STRING, ARRAYREF, OBJECTREF -> {
-                return "aload " + reg + NL;
+                return "aload" + reg + NL;
             }
             case BOOLEAN, INT32 -> {
-                return "iload " + reg + NL;
+                return "iload" + reg + NL;
             }
             default -> throw new NotImplementedException(operand.getType().getTypeOfElement().toString());
         }
