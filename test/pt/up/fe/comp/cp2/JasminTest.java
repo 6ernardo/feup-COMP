@@ -45,6 +45,7 @@ public class JasminTest {
     @Test
     public void simple() { testOllirToJasmin("pt/up/fe/comp/cp2/apps/example_ollir/Simple.ollir");}
 
+
     public static void testOllirToJasmin(String resource, String expectedOutput) {
         JasminResult result = null;
 

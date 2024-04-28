@@ -51,9 +51,13 @@ public class IncompatibleArguments extends AnalysisVisitor {
             );
             return null;
         }
+        boolean isVarArgs;
 
-        boolean isVarArgs = (boolean) parameters.get(parameters.size()-1).getType().getObject("isVarArgs");
-
+        if (parameters.isEmpty()){
+            isVarArgs = false;
+        }else {
+            isVarArgs = (boolean) parameters.get(parameters.size() - 1).getType().getObject("isVarArgs");
+        }
         boolean excessArgs = false;
         if (arguments.size()-1 > parameters.size()){
             if (!isVarArgs){
