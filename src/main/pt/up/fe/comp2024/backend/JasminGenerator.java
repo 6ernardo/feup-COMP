@@ -56,7 +56,8 @@ public class JasminGenerator {
         generators.put(PutFieldInstruction.class, this::generatePutFields);
         generators.put(GetFieldInstruction.class, this::generateGetFields);
         generators.put(CallInstruction.class, this::generateCall);
-
+        generators.put(SingleOpCondInstruction.class, this::generateSingleOpCod);
+        generators.put(GotoInstruction.class, this::generateGoto);
     }
 
     public List<Report> getReports() {
@@ -284,6 +285,10 @@ public class JasminGenerator {
             case MUL -> "imul";
             case SUB -> "isub";
             case DIV -> "idiv";
+            case ANDB -> "iand";
+            case NOTB -> "ifeq";
+            case LTH -> "if_icmplt";
+            case GTE -> "if_icmpte";
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
         };
 
@@ -375,13 +380,18 @@ public class JasminGenerator {
         var code = new StringBuilder();
 
         if(callInstruction.getInvocationType() == CallType.NEW){
-            var name = callInstruction.getCaller().getType().getTypeOfElement() == ElementType.THIS ?
-                    ((ClassType) callInstruction.getCaller().getType()).getName() : getImportedClassName(((ClassType) callInstruction.getCaller().getType()).getName());
-            var instance = "new " + name;
+            if(callInstruction.getReturnType().getTypeOfElement() == ElementType.OBJECTREF) {
+                var name = callInstruction.getCaller().getType().getTypeOfElement() == ElementType.THIS ?
+                        ((ClassType) callInstruction.getCaller().getType()).getName() : getImportedClassName(((ClassType) callInstruction.getCaller().getType()).getName());
+                var instance = "new " + name;
 
-            this.needsPop = true;
+                this.needsPop = true;
 
-            return code.append(instance).append(NL).append("dup").append(NL).toString();
+                return code.append(instance).append(NL).append("dup").append(NL).toString();
+            }
+            else { // ARRAYREF
+                code.append("newarray int").append(NL);
+            }
         }
         else if(callInstruction.getInvocationType() == CallType.invokespecial){
             var load = generators.apply(callInstruction.getCaller());
@@ -462,4 +472,11 @@ public class JasminGenerator {
         return name;
     }
 
+    private String generateSingleOpCod(SingleOpCondInstruction singleOpCondInstruction){
+        return generators.apply(singleOpCondInstruction.getCondition().getSingleOperand());
+    }
+
+    private String generateGoto(GotoInstruction gotoInstruction) {
+        return "goto " + gotoInstruction.getLabel() + NL;
+    }
 }
