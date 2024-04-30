@@ -24,7 +24,14 @@ public class JmmOptimizationImpl implements JmmOptimization {
 
     @Override
     public OllirResult optimize(OllirResult ollirResult) {
+        var registersCountString = ollirResult.getConfig().get("registerAllocation");
+        if (registersCountString == null){
+            return ollirResult;
+        }
+        int regCount = Integer.parseInt(registersCountString);
+
         //TODO: Do your OLLIR-based optimizations here
+
         return ollirResult;
     }
 
