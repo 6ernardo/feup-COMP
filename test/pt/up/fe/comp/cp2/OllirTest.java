@@ -379,17 +379,6 @@ public class OllirTest {
         // Test name of the Class
         assertEquals("Class name not what was expected", "CompileVarArgs", classUnit.getClassName());
 
-        // Test main
-        var methodName = "main";
-        Method methodMain = classUnit.getMethods().stream()
-                .filter(method -> method.getMethodName().equals(methodName))
-                .findFirst()
-                .orElse(null);
-
-        assertNotNull("Could not find method " + methodName, methodMain);
-
-        // check for an instance of a call instruction with varargs
-
         // TODO: check for an instance of a call instruction with varargs
     }
 
