@@ -18,7 +18,12 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
     private static final String SPACE = " ";
     private static final String ASSIGN = ":=";
-    private final String END_STMT = ";\n";
+    private static final String END_STMT = ";\n";
+
+    private static final String LEFT_PAREN = "(";
+    private static final String RIGHT_PAREN = ")";
+
+    private static final String NEW_LINE = "\n";
 
     private final SymbolTable table;
 
@@ -40,8 +45,44 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         addVisit(ARRAY_LENGTH_EXPR, this::visitArrayLengthExpr);
         addVisit(ARRAY_ACCESS_EXPR, this::visitArrayAccessExpr);
         addVisit(ARRAY_CREATION_EXPR, this::visitArrayInitExpr);
+        addVisit(UNARY_EXPR, this::visitUnaryExpr);
 
         setDefaultVisit(this::defaultVisit);
+    }
+
+    private OllirExprResult visitUnaryExpr(JmmNode node, Void unused) {
+        StringBuilder computation = new StringBuilder();
+        StringBuilder code = new StringBuilder();
+
+        // get the expression
+        var expr = node.getJmmChild(0);
+
+        // get operator
+        var operator = node.get("op");
+
+        // visit the expression
+        OllirExprResult exprResult = visit(expr);
+        computation.append(exprResult.getComputation());
+
+        // get the type of the expression
+        Type type = TypeUtils.getOperatorReturnType(operator);
+
+        // get the ollir type
+        String ollirType = OptUtils.toOllirType(type);
+
+        // get a temp variable
+        String tempVar = OptUtils.getTemp();
+
+        // add the instruction
+        computation.append(tempVar).append(ollirType).append(SPACE);
+        computation.append(ASSIGN).append(ollirType).append(SPACE);
+        computation.append(operator).append(ollirType).append(SPACE);
+        computation.append(exprResult.getCode()).append(END_STMT);
+
+        // add the temp variable to the code
+        code.append(tempVar).append(ollirType);
+
+        return new OllirExprResult(code.toString(), computation.toString());
     }
 
     private OllirExprResult visitArrayInitExpr(JmmNode node, Void unused) {
@@ -323,24 +364,79 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         StringBuilder computation = new StringBuilder();
 
+        // get operator
+        String op = node.get("op");
+        var opRtrnType = TypeUtils.getOperatorReturnType(op);
+
+        if (op.equals("&&") || op.equals("||")){
+            return visitShortCircuitExpr(node, lhs_result, rhs_result,op);
+        }
+
         // code to compute the children
         computation.append(lhs_result.getComputation());
         computation.append(rhs_result.getComputation());
 
         // code to compute self
-        Type resType = TypeUtils.getExprType(node, table);
-        String resOllirType = OptUtils.toOllirType(resType);
+        String resOllirType = OptUtils.toOllirType(opRtrnType);
         String code = OptUtils.getTemp() + resOllirType;
 
         computation.append(code).append(SPACE)
                 .append(ASSIGN).append(resOllirType).append(SPACE)
-                .append(lhs_result.getCode()).append(SPACE);
-
-        Type type = TypeUtils.getExprType(node, table);
-        computation.append(node.get("op")).append(OptUtils.toOllirType(type)).append(SPACE)
+                .append(lhs_result.getCode()).append(SPACE)
+                .append(op).append(resOllirType).append(SPACE)
                 .append(rhs_result.getCode()).append(END_STMT);
 
         return new OllirExprResult(code, computation);
+    }
+
+    private OllirExprResult visitShortCircuitExpr(JmmNode node, OllirExprResult lhsResult,
+                                                  OllirExprResult rhsResult, String op) {
+        StringBuilder computation = new StringBuilder();
+        StringBuilder code = new StringBuilder();
+
+        // get labels
+        String endLabel = OptUtils.getLabel();
+
+        // get tmp variable
+        String tmpVar = OptUtils.getTemp() + ".bool";
+
+        // add computation of lhs
+        computation.append(lhsResult.getComputation());
+
+        if (op.equals("&&")) {
+            // get another label
+            String andLabel = OptUtils.getLabel();
+            computation.append("if ")
+                    .append(LEFT_PAREN).append(lhsResult.getCode()).append(RIGHT_PAREN)
+                    .append(" goto ").append(andLabel).append(END_STMT);
+            computation.append(tmpVar).append(SPACE).append(ASSIGN).append(".bool")
+                    .append(SPACE).append("0.bool").append(END_STMT);
+            computation.append("goto ").append(endLabel).append(END_STMT);
+            computation.append(andLabel).append(":").append(NEW_LINE);
+        } else {
+            // assign true to tmpVar
+            // TODO: check if there is a better way to do this with less assignments
+            computation.append(tmpVar).append(SPACE).append(ASSIGN).append(".bool")
+                    .append(SPACE).append("1.bool").append(END_STMT);
+            computation.append("if ")
+                    .append(LEFT_PAREN).append(lhsResult.getCode()).append(RIGHT_PAREN)
+                    .append(" goto ").append(endLabel).append(END_STMT);
+        }
+
+        // add computation of rhs
+        computation.append(rhsResult.getComputation());
+
+        // assign the result of rhs to tmpVar
+        computation.append(tmpVar).append(SPACE).append(ASSIGN)
+                .append(".bool").append(SPACE).append(rhsResult.getCode()).append(END_STMT);
+
+        // add endLabel
+        computation.append(endLabel).append(":").append(NEW_LINE);
+
+        // add tmpVar to code
+        code.append(tmpVar);
+
+        return new OllirExprResult(code.toString(), computation.toString());
     }
 
     private boolean isImport(JmmNode node){

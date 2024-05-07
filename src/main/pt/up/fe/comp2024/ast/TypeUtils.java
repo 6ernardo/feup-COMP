@@ -213,7 +213,7 @@ public class TypeUtils {
     public static Type getOperatorReturnType(String operator) {
         return switch (operator) {
             case "+", "-", "*", "/" -> new Type(INT_TYPE_NAME, false);
-            case "<", "&&", "not" -> new Type(BOOLEAN_TYPE_NAME, false);
+            case "<", "&&", "!" -> new Type(BOOLEAN_TYPE_NAME, false);
             default -> throw new RuntimeException("Unknown operator '" + operator + "'");
         };
     }
@@ -334,4 +334,5 @@ public class TypeUtils {
     public static Type getElementType(Type arrayType) {
         return new Type(arrayType.getName(), false);
     }
+
 }

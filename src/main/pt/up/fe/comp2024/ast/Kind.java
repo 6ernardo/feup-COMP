@@ -1,6 +1,7 @@
 package pt.up.fe.comp2024.ast;
 
 import pt.up.fe.comp.jmm.ast.JmmNode;
+import pt.up.fe.comp.jmm.ast.JmmNodeImpl;
 import pt.up.fe.specs.util.SpecsStrings;
 
 import java.util.Arrays;
@@ -136,5 +137,14 @@ public enum Kind {
             // throw if none matches
             throw new RuntimeException("Node '" + node + "' is not any of " + Arrays.asList(kindsToTest));
         }
+    }
+
+    /**
+     * Creates a new Node with the specified Kind
+     *
+     * @return A jmmNode
+     */
+    public JmmNode createNode(){
+        return new JmmNodeImpl(name);
     }
 }
