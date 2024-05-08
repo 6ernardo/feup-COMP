@@ -229,7 +229,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     }
 
     private OllirExprResult visitBool(JmmNode node, Void unused) {
-        var boolValue = node.get("name");
+        var boolValue = node.get("value");
         String code;
         if (boolValue.equals("true")){
             code = "1.bool";

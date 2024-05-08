@@ -1,15 +1,18 @@
 package pt.up.fe.comp2024.optimization.visitors;
 
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.JmmNodeImpl;
+import pt.up.fe.comp.jmm.ast.PostorderJmmVisitor;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp2024.ast.Kind;
+import pt.up.fe.comp2024.ast.TypeUtils;
 
 import java.util.List;
 import java.util.Map;
 
-public class ConstantFolding extends PreorderJmmVisitor<SymbolTable, Void> {
+public class ConstantFolding extends PostorderJmmVisitor<Void, Void> {
 
     public boolean changed = false;
 
@@ -21,7 +24,7 @@ public class ConstantFolding extends PreorderJmmVisitor<SymbolTable, Void> {
         setDefaultVisit((node, symbolTable) -> null);
     }
 
-    private Void visitUnaryExpr(JmmNode unaryExpr, SymbolTable table) {
+    private Void visitUnaryExpr(JmmNode unaryExpr, Void unused) {
         // Check if the unary expr is with an Integer Literal
         var child = unaryExpr.getChild(0);
         if (Kind.BOOL_LITERAL.check(child)) {
@@ -40,7 +43,7 @@ public class ConstantFolding extends PreorderJmmVisitor<SymbolTable, Void> {
         return null;
     }
 
-    private Void visitBinaryExpr(JmmNode binaryExpr, SymbolTable table) {
+    private Void visitBinaryExpr(JmmNode binaryExpr, Void unused) {
         // Check if the binary expr is with 2 Integer Literals
         var child1 = binaryExpr.getChild(0);
         var child2 = binaryExpr.getChild(1);
@@ -51,8 +54,20 @@ public class ConstantFolding extends PreorderJmmVisitor<SymbolTable, Void> {
             var operator = binaryExpr.get("op");
             var newValue = calculateValue(value1, value2, operator);
 
+            var opRtnType = TypeUtils.getOperatorReturnType(operator);
+
+            Kind newNodeKind;
+            if (opRtnType.equals(new Type(TypeUtils.getIntTypeName(), false))){
+                newNodeKind = Kind.INTEGER_LITERAL;
+            } else if (opRtnType.equals(new Type(TypeUtils.getBooleanTypeName(), false))){
+                newNodeKind = Kind.BOOL_LITERAL;
+            } else {
+                return null;
+            }
+
+
             // create new Integer Literal node
-            var newIntLiteral = new JmmNodeImpl(Kind.INTEGER_LITERAL.toString());
+            var newIntLiteral = newNodeKind.createNode();
             newIntLiteral.put("value",newValue);
 
             // create a list with the new Integer Literal node

@@ -71,6 +71,10 @@ public class JasminGenerator {
             code = generators.apply(ollirResult.getOllirClass());
         }
 
+        // print code
+        System.out.println("Jasmin code:");
+        System.out.println(code);
+
         return code;
     }
 
