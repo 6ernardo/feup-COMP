@@ -8,10 +8,7 @@ import pt.up.fe.specs.util.classmap.FunctionClassMap;
 import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import pt.up.fe.specs.util.utilities.StringLines;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -58,6 +55,27 @@ public class JasminGenerator {
         generators.put(CallInstruction.class, this::generateCall);
         generators.put(SingleOpCondInstruction.class, this::generateSingleOpCod);
         generators.put(GotoInstruction.class, this::generateGoto);
+        generators.put(OpCondInstruction.class, this::generateOpCond);
+    }
+
+    private String generateOpCond(OpCondInstruction inst) {
+        var code = new StringBuilder();
+
+        var label = inst.getLabel();
+        var cond = inst.getCondition();
+
+        // determine what branch instruction to use out of
+        // if_acmpeq, if_acmpne, if_icmpeq, if_icmpge, if_icmpgt, if_icmple, if_icmplt, if_icmpne
+
+        // for now assume we are doing "<" between integers
+        var lhs = cond.getOperands().get(0);
+        var rhs = cond.getOperands().get(1);
+
+        code.append(generators.apply(lhs));
+        code.append(generators.apply(rhs));
+
+        code.append("if_icmplt ").append(label).append(NL);
+        return code.toString();
     }
 
     public List<Report> getReports() {
@@ -172,16 +190,25 @@ public class JasminGenerator {
 
         code.append(TAB).append(".limit locals " + regs.size()).append(NL);
 
+        HashMap<String,Instruction> labels = method.getLabels();
         for (var inst : method.getInstructions()) {
 
             if((inst instanceof CallInstruction) && ((CallInstruction) inst).getReturnType().getTypeOfElement() != ElementType.VOID
-                    && ( ((CallInstruction) inst).getInvocationType() == CallType.invokestatic ||
+                    && (((CallInstruction) inst).getInvocationType() == CallType.invokestatic ||
                     ((CallInstruction) inst).getInvocationType() == CallType.invokevirtual ) ){
                 this.needsPop = true;
             }
 
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
+
+            for (Map.Entry<String, Instruction> entry : labels.entrySet()) {
+                if (entry.getValue() == inst) {
+                    // Prepend the label to the instruction code
+                    instCode = entry.getKey() + ":" + NL + instCode;
+                    break;
+                }
+            }
 
             code.append(instCode);
         }
@@ -477,7 +504,18 @@ public class JasminGenerator {
     }
 
     private String generateSingleOpCod(SingleOpCondInstruction singleOpCondInstruction){
-        return generators.apply(singleOpCondInstruction.getCondition().getSingleOperand());
+        // generate code like: "iflt label"
+        // add the condition to the stack
+
+        var condition = singleOpCondInstruction.getCondition();
+        var code = generators.apply(condition);
+
+        StringBuilder res = new StringBuilder();
+
+        res.append(code);
+        res.append("iflt ").append(singleOpCondInstruction.getLabel()).append(NL);
+
+        return res.toString();
     }
 
     private String generateGoto(GotoInstruction gotoInstruction) {
