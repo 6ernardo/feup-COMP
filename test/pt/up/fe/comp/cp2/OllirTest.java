@@ -79,6 +79,11 @@ public class OllirTest {
         testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileArrayInit.jmm", this::compileArrayInit);
     }
 
+    @Test
+    public void compileEverything(){
+        testJmmCompilation("pt/up/fe/comp/cp2/ollir/CompileEverything.jmm", this::compileEverything);
+    }
+
     public static void testJmmCompilation(String resource, Consumer<ClassUnit> ollirTester, String executionOutput) {
 
         // If AstToJasmin pipeline, generate Jasmin
@@ -388,6 +393,10 @@ public class OllirTest {
         assertEquals("Class name not what was expected", "CompileArrayInit", classUnit.getClassName());
 
         // TODO: check for an instance of an array initialization expression
+    }
+
+    public void compileEverything(ClassUnit classUnit){
+
     }
 
 }

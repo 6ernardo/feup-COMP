@@ -1,22 +1,17 @@
-import io;
-import String;
+import t;
+import out;
 
-class CompileArrayAccessAndAllocation {
-
-    int som;
+class Everything extends t{
 
     public static void main(String[] args) {
-        int i;
-        int[] j;
-        String k;
-
-        // test array access
-        k = args[0];
-        io.println(j[9]);
-
-        // test array allocation
-        j[0] = 1;
-        j[1] = 2;
-
+        Everything e;
+        e = new Everything();
+        e.t();
     }
+
+    int test(int... a){
+        int[] b;
+        b = a;
+        return 12;
+     }
 }

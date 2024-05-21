@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.ast;
 
+import org.antlr.v4.runtime.misc.Pair;
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
@@ -51,9 +52,6 @@ public class TypeUtils {
 
         return type;
     }
-
-
-
 
     private static Type getVariableType(String variableName, SymbolTable table ,  Optional<JmmNode> currentMethod){
         // check if there is an entry for the variable in the method
@@ -188,16 +186,25 @@ public class TypeUtils {
 
     public static Type getVarExprType(JmmNode varRefExpr, SymbolTable table) {
         // Check varRefExpr is integer literal
-        if (varRefExpr.getKind().equals(Kind.INTEGER_LITERAL.toString())) {
-            return new Type("int", false);
-        }
+        //if (varRefExpr.getKind().equals(Kind.INTEGER_LITERAL.toString())) {
+        //    return new Type("int", false);
+        //}
 
         var varName = varRefExpr.get("name");
-
         // check if we are in a method and what method
         var method = varRefExpr.getAncestor(METHOD_DECL);
 
-        return getVariableType(varName, table, method);
+        var temp = getVarRefType(varName, table, method);
+
+        if (temp == null){
+            return null;
+        }
+
+        Type t = temp.a;
+        String scope = temp.b;
+
+        t.putObject("scope", scope);
+        return t;
     }
 
     /**
@@ -333,6 +340,62 @@ public class TypeUtils {
 
     public static Type getElementType(Type arrayType) {
         return new Type(arrayType.getName(), false);
+    }
+
+    public static Pair<Type,String> getVarRefType(String name, SymbolTable table, Optional<JmmNode> currentMethod) {
+
+        // check if there is an entry for the variable in the method
+        if (currentMethod.isPresent()) {
+            var currentMethodNode = currentMethod.get();
+            List<Symbol> methodsLocals = table.getLocalVariables(currentMethodNode.get("name"));
+            for (Symbol s : methodsLocals) {
+                if (s.getName().equals(name)) {
+                    var type = s.getType();
+                    return new Pair<>(type, "local");
+                }
+            }
+            // check if the variable is a parameter
+            var params = table.getParameters(currentMethodNode.get("name"));
+            for (Symbol s : params) {
+                if (s.getName().equals(name)) {
+                    // check if its a varargs and if so return array type instead
+                    var type = s.getType();
+                    return new Pair<>(type, "param");
+                }
+            }
+        }
+        // check if the variable is a field
+        var fields = table.getFields();
+        for (Symbol s : fields) {
+            if (s.getName().equals(name)) {
+                var type = s.getType();
+                return new Pair<>(type, "field");
+            }
+        }
+
+        // check if its equal to the extended class
+        var superClass = table.getSuper();
+        if (superClass != null && superClass.equals(name)){
+            var type = new Type(name, false);
+            return new Pair<>(type, "super");
+        }
+
+        // check if the variable is imported
+        var imports = table.getImports();
+        for (String s : imports) {
+            if (s.equals(name)) {
+                var type = new Type(name, false);
+                return new Pair<>(type, "import");
+            }
+        }
+
+        if (name.equals(table.getClassName())){
+            var type = new Type(name, false);
+            return new Pair<>(type, "this");
+        }
+
+        return null;
+
     }
 
 }

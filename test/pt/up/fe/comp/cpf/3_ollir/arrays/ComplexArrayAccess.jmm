@@ -23,5 +23,6 @@ class ComplexArrayAccess {
         ioPlus.printResult(a[a[2]]);
         ioPlus.printResult(a[a.length -1 ]);
 
+
 	}
 }
