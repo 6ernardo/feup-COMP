@@ -53,8 +53,8 @@ public class JasminGenerator {
         generators.put(PutFieldInstruction.class, this::generatePutFields);
         generators.put(GetFieldInstruction.class, this::generateGetFields);
         generators.put(CallInstruction.class, this::generateCall);
-        generators.put(SingleOpCondInstruction.class, this::generateSingleOpCod);
         generators.put(GotoInstruction.class, this::generateGoto);
+        generators.put(SingleOpCondInstruction.class, this::generateSingleOpCond);
         generators.put(OpCondInstruction.class, this::generateOpCond);
         generators.put(UnaryOpInstruction.class, this::generateUnaryOp);
     }
@@ -203,6 +203,7 @@ public class JasminGenerator {
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
 
+            // *********************** NEEDED FOR CONTROL FLOW TESTS *******************************
             for (Map.Entry<String, Instruction> entry : labels.entrySet()) {
                 if (entry.getValue() == inst) {
                     // Prepend the label to the instruction code
@@ -443,7 +444,6 @@ public class JasminGenerator {
 
             var invoke = callInstruction.getInvocationType().name() + " " + name + "/<init>(" + args + ")" + getTypeSignature(callInstruction.getReturnType());
             code.append(load).append(NL).append(invoke).append(NL);
-            //code.append("pop").append(NL); // always pops the return value cause it's a constructor
         }
         else if(callInstruction.getInvocationType() == CallType.invokevirtual){
             var load = generators.apply(callInstruction.getCaller());
@@ -489,8 +489,6 @@ public class JasminGenerator {
             code.append(aux).append("arraylength").append(NL);
         }
 
-        //outros???
-
         if (this.needsPop){
             code.append("pop").append(NL);
             this.needsPop = false;
@@ -513,7 +511,7 @@ public class JasminGenerator {
         return name;
     }
 
-    private String generateSingleOpCod(SingleOpCondInstruction singleOpCondInstruction){
+    private String generateSingleOpCond(SingleOpCondInstruction singleOpCondInstruction){
         // generate code like: "iflt label"
         // add the condition to the stack
 
@@ -523,10 +521,10 @@ public class JasminGenerator {
         StringBuilder res = new StringBuilder();
 
         res.append(code);
-        res.append("iflt ").append(singleOpCondInstruction.getLabel()).append(NL);
-
+        res.append("goto ").append(singleOpCondInstruction.getLabel()).append(NL);
 
         return res.toString();
+
     }
 
     private String generateGoto(GotoInstruction gotoInstruction) {
@@ -534,8 +532,14 @@ public class JasminGenerator {
     }
 
     private String generateUnaryOp(UnaryOpInstruction unaryOpInstruction) {
-        // **** TO COMPLETE **** //
-        return "";
+        var code = new StringBuilder();
+        var load = generators.apply(unaryOpInstruction.getOperand());
+
+        if(unaryOpInstruction.getOperation().getOpType() == OperationType.NOTB){
+            code.append(load).append(load).append("ixor").append(NL);
+        }
+
+        return code.toString();
     }
 
 }
