@@ -56,6 +56,7 @@ public class JasminGenerator {
         generators.put(SingleOpCondInstruction.class, this::generateSingleOpCod);
         generators.put(GotoInstruction.class, this::generateGoto);
         generators.put(OpCondInstruction.class, this::generateOpCond);
+        generators.put(UnaryOpInstruction.class, this::generateUnaryOp);
     }
 
     private String generateOpCond(OpCondInstruction inst) {
@@ -422,7 +423,12 @@ public class JasminGenerator {
                 return code.append(instance).append(NL).append("dup").append(NL).toString();
             }
             else { // ARRAYREF
-                code.append("newarray int").append(NL);
+                StringBuilder loads = new StringBuilder();
+                for(Element parameter : callInstruction.getArguments()){
+                    loads.append(generators.apply(parameter));
+                }
+
+                code.append(loads).append("newarray int").append(NL);
             }
         }
         else if(callInstruction.getInvocationType() == CallType.invokespecial){
@@ -479,6 +485,10 @@ public class JasminGenerator {
             code.append(loads).append(invoke).append(NL);
 
         }
+        else if(callInstruction.getInvocationType() == CallType.arraylength) {
+            var aux = generators.apply(callInstruction.getCaller());
+            code.append(aux).append("arraylength").append(NL);
+        }
 
         //outros???
 
@@ -516,10 +526,17 @@ public class JasminGenerator {
         res.append(code);
         res.append("iflt ").append(singleOpCondInstruction.getLabel()).append(NL);
 
+
         return res.toString();
     }
 
     private String generateGoto(GotoInstruction gotoInstruction) {
         return "goto " + gotoInstruction.getLabel() + NL;
     }
+
+    private String generateUnaryOp(UnaryOpInstruction unaryOpInstruction) {
+        // **** TO COMPLETE **** //
+        return "";
+    }
+
 }
