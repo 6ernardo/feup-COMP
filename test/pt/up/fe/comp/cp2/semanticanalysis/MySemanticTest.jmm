@@ -9,8 +9,9 @@ class Everything extends t{
         e.t();
     }
 
-    public int t(){
-        out.println();
-        return 0;
-    }
+    int test(int... a){
+        int[] b;
+        b = a;
+        return 12;
+     }
 }

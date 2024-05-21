@@ -2,6 +2,7 @@ package pt.up.fe.comp2024.optimization;
 
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
+import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp2024.ast.NodeUtils;
@@ -14,7 +15,7 @@ import static pt.up.fe.comp2024.ast.Kind.*;
 /**
  * Generates OLLIR code from JmmNodes that are expressions.
  */
-public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExprResult> {
+public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult> {
 
     private static final String SPACE = " ";
     private static final String ASSIGN = ":=";
@@ -362,8 +363,6 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         var lhs_result = visit(lhs);
         var rhs_result = visit(rhs);
 
-        StringBuilder computation = new StringBuilder();
-
         // get operator
         String op = node.get("op");
         var opRtrnType = TypeUtils.getOperatorReturnType(op);
@@ -371,6 +370,8 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         if (op.equals("&&") || op.equals("||")){
             return visitShortCircuitExpr(node, lhs_result, rhs_result,op);
         }
+
+        StringBuilder computation = new StringBuilder();
 
         // code to compute the children
         computation.append(lhs_result.getComputation());
@@ -437,18 +438,6 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         code.append(tmpVar);
 
         return new OllirExprResult(code.toString(), computation.toString());
-    }
-
-    private boolean isImport(JmmNode node){
-        // check if the variable is imported
-        String variableName = node.get("name");
-        var imports = table.getImports();
-        for (String s : imports) {
-            if (s.equals(variableName)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private OllirExprResult visitVarRef(JmmNode node, Void unused) {
