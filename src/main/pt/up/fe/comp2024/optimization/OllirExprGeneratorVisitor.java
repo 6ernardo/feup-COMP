@@ -243,8 +243,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     }
 
     private boolean isUsingVarArgs(JmmNode node){
-        return NodeUtils.getBooleanAttribute(node, "isVarArgsUsed", "false");
-        /*
+        //return NodeUtils.getBooleanAttribute(node, "isVarArgsUsed", "false");
+
         var nameOfTheFunction = node.get("name");
 
         var className =table.getClassName();
@@ -269,7 +269,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         var lastParameter = parameters.get(parameters.size()-1);
 
         var lastParameterType = lastParameter.getType();
-        boolean isVarArgs = NodeUtils.getBooleanAttribute(node, "isVarArgs", "false");
+        boolean isVarArgs = (boolean)lastParameterType.getObject("isVarArgs");
 
         if (!isVarArgs){
             return false;
@@ -283,7 +283,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         return !lastArgumentType.equals(lastParameterType);
 
-         */
     }
 
     public boolean isFunctionCallStatic(JmmNode node){
@@ -328,100 +327,80 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     private OllirExprResult visitMethodCall(JmmNode node , Void unused){
         // structure of a method call
         // invoke[static|virtual](target, "nameOfTheFunction", param1, param2, ..., paramN).returnType;
+
         // progrma flow
-
         StringBuilder computation = new StringBuilder();
-        StringBuilder paramCodes = new StringBuilder();
+        StringBuilder code = new StringBuilder();
 
+        // get exprs
+        var targetExpr = node.getJmmChild(0);
+        var argumentsExprs = node.getChildren().subList(1, node.getNumChildren());
+        var name = node.get("name");
 
-        // extract : name of the function, target expr and argument exprs
-        String nameOfTheFunction = node.get("name");
-        List<JmmNode> argumentsExpr = node.getChildren();
-        JmmNode target = argumentsExpr.remove(0);
+        // get return type of the function
+        var returnType = getMethodCallReturnType(node);
+        if (returnType == null){
+            return OllirExprResult.EMPTY;
+        }
+        var ollirReturnType = OptUtils.toOllirType(returnType);
 
-        // compute the arguments
-        var isVarArgsUsed = NodeUtils.getBooleanAttribute(node, "isVarArgsUsed", "false");
+        String actualCode = "";
+        // if the return type is not void we need to create a temp variable
+        if (!ollirReturnType.equals(".V")){
+            var tempVar = OptUtils.getTemp();
+            actualCode = tempVar + ollirReturnType;
+            code.append(tempVar).append(ollirReturnType).append(SPACE).append(ASSIGN).append(ollirReturnType).append(SPACE);
+        }
+
+        var isStatic = isFunctionCallStatic(node);
+        if (isStatic){
+            code.append("invokestatic(");
+        }else{
+            code.append("invokevirtual(");
+        }
+
+        // visit the expression and add computation
+        OllirExprResult targetResult = visit(targetExpr);
+        computation.append(targetResult.getComputation());
+        code.append(targetResult.getCode()).append(", \"").append(name).append("\"");
+
+        List<OllirExprResult> argumentsResults = new ArrayList<>();
+        for (JmmNode argument : argumentsExprs) {
+            OllirExprResult argumentResult = visit(argument);
+            computation.append(argumentResult.getComputation());
+            argumentsResults.add(argumentResult);
+        }
+
+        // determine wether or not the method call is using varargs
+        var isVarArgsUsed = isUsingVarArgs(node);
 
         if (isVarArgsUsed){
-            // if varargs is used we need to remove the last argument
-            var argumentsSize = argumentsExpr.size();
-            var parameters = table.getParameters(nameOfTheFunction);
+            // get the parameters of the function
+            var parameters = table.getParameters(name);
             var parametersSize = parameters.size();
 
+            // for parametersSize-1 arguments we need to add them to the code
             for (int i = 0; i < parametersSize-1; i++){
-                OllirExprResult argumentResult = visit(argumentsExpr.get(i));
-                computation.append(argumentResult.getComputation());
-                paramCodes.append(", ").append(argumentResult.getCode());
+                code.append(", ").append(argumentsResults.get(i).getCode());
             }
 
-            // get the last argument type
-            var lastArgumentType = parameters.get(parametersSize-1).getType();
-            var elementType = new Type(lastArgumentType.getName(), false);
-            var listOfExprs = argumentsExpr.subList(parametersSize-1, argumentsSize);
-
-            OllirExprResult arrayResult = createArray(listOfExprs, elementType);
+            // for the rest we create an array
+            var arrayResult = createArray(argumentsExprs.subList(parametersSize-1, argumentsExprs.size()),
+                    new Type(parameters.get(parametersSize-1).getType().getName(), false));
 
             computation.append(arrayResult.getComputation());
-            paramCodes.append(", ").append(arrayResult.getCode());
-
+            code.append(", ").append(arrayResult.getCode());
         }else {
-            for (JmmNode argument : argumentsExpr) {
-                OllirExprResult argumentResult = visit(argument);
-                computation.append(argumentResult.getComputation());
-                paramCodes.append(", ").append(argumentResult.getCode());
+            for (OllirExprResult argumentResult : argumentsResults) {
+                code.append(", ").append(argumentResult.getCode());
             }
         }
 
-        OllirExprResult targetResult = visit(target);
-        computation.append(targetResult.getComputation());
+        code.append(")").append(ollirReturnType);
 
-        boolean isStatic = false;
+        computation.append(code).append(END_STMT);
 
-        // do verification
-        if (VAR_REF_EXPR.check(target)){
-            if ((boolean) target.getObject("isStatic")){
-                isStatic = true;
-            }
-        }
-
-        var isImportedClass = (boolean)node.getObject("isTargetAImport");
-
-        // make code like this
-
-        String code;
-
-        String type = null;
-        if (!isImportedClass){
-            type = OptUtils.toOllirType(TypeUtils.getExprType(node, table));
-        }
-
-        if (type == null){
-            type = getSpecialCaseType(node);
-        }
-
-        if (!type.equals(".V")){
-            // get a temp variable and add "temp := " to the code
-            String nt = OptUtils.getTemp();
-            computation.append(nt).append(type).append(SPACE).append(ASSIGN).append(type).append(SPACE);
-            code = nt + type;
-        }else{
-            code = "";
-        }
-
-        // make the function call
-
-        if (isStatic){
-            computation.append("invokestatic(");
-        }else{
-            computation.append("invokevirtual(");
-        }
-
-        computation.append(targetResult.getCode()).append(", \"").append(nameOfTheFunction).append("\"")
-                .append(paramCodes).append(")").append(type).append(END_STMT);
-
-        return new OllirExprResult(code, computation.toString());
-
-
+        return new OllirExprResult(actualCode, computation.toString());
     }
 
     private String getSpecialCaseType(JmmNode node) {
