@@ -96,7 +96,8 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             // assign field to tmp
             code.append(target).append(targetType)
                     .append(SPACE).append(ASSIGN).append(targetType).append(SPACE)
-                    .append("getfield(this, ").append(id).append(targetType).append(")").append(targetType).append(END_STMT);
+                    .append("getfield(this.").append(table.getClassName()).append(", ")
+                    .append(id).append(targetType).append(")").append(targetType).append(END_STMT);
         }
 
         // write assignment
@@ -300,7 +301,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         String typeString = OptUtils.toOllirType(type);
 
         if (scope.equals("field")){
-            return "putfield(this, " + variableName + typeString + ", " +  rhs.getCode() + ").V" + END_STMT;
+            return "putfield(this."+table.getClassName()
+                    +", " + variableName + typeString + ", "
+                    +  rhs.getCode() + ").V" + END_STMT;
         }
 
         code.append(variableName);
