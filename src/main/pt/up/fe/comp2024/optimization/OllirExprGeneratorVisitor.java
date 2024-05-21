@@ -455,16 +455,19 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         // here we can have either a variable or an import in case we are calling a static function
         var id = node.get("name");
 
-        if (isImport(node)){
+        Type type = TypeUtils.getExprType(node, table); // get the type of the variable
+
+        String scope = (String)type.getObject("scope");
+
+        if (scope.equals("import")){
             return new OllirExprResult(id); // return the import
         }
 
-        Type type = TypeUtils.getExprType(node, table); // get the type of the variable
         String ollirType = OptUtils.toOllirType(type); // convert it to ollir type
 
         String var = id + ollirType; // create the code which is the name of the variable + its type
 
-        if (isVarRefAField(node)){
+        if (scope.equals("field")){
             // tmp1 := getfield(this,[nameOfField].[typeOfField]).typeOfField,
 
             var tmpVar = OptUtils.getTemp() + ollirType;

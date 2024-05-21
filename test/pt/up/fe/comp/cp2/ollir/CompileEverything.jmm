@@ -1,12 +1,14 @@
 import ioPlus;
+import test.popo;
 class ComplexArrayAccess {
+    int[] field1;
 
     public int func(int a) {
-        return a;
+        return field1[a];
     }
 
 	public static void main(String[] args) {
-	    int[] a;
+        int[] a;
         int i;
         ComplexArrayAccess d;
         d = new ComplexArrayAccess();
@@ -23,6 +25,7 @@ class ComplexArrayAccess {
         ioPlus.printResult(a[a[2]]);
         ioPlus.printResult(a[a.length -1 ]);
 
+        ioPlus.println(args[1]);
 
 	}
 }

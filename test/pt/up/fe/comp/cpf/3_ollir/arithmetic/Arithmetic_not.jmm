@@ -3,11 +3,18 @@ import io;
 class Arithmetic_not {
 	public static void main(String[] args) {
 		boolean a;
+		int i;
+		int b;
 
-        a = !true;
+		i = 10;
+		b = 20;
 
+		if (i < b){
+		    a = true;
+		}else{
+		    a = false;
+		}
+        a = !a;
         io.println(a);
 	}
-
-
 }

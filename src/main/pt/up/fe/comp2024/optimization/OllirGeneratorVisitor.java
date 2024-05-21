@@ -38,15 +38,14 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     @Override
     protected void buildVisitor() {
-
         addVisit(PROGRAM, this::visitProgram);
+        addVisit(IMPORT_DECL, this::visitImportDecl);
         addVisit(CLASS_DECL, this::visitClass);
+        addVisit(VAR_DECL, this::visitVarDecl);
         addVisit(METHOD_DECL, this::visitMethodDecl);
         addVisit(PARAM, this::visitParam);
         addVisit(RETURN_STMT, this::visitReturn);
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
-        addVisit(IMPORT_DECL, this::visitImportDecl);
-        addVisit(VAR_DECL, this::visitVarDecl);
         addVisit(EXPR_STMT, this::visitExprStmt);
         addVisit(IF_STMT, this::visitIfStmt);
         addVisit(BLOCK_STMT, this::visitBlockStmt);
@@ -164,14 +163,17 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         var thenNode = node.getJmmChild(1); // stmt
         var elseNode = node.getJmmChild(2); // stmt
 
-        // get computation
+        // visit them
         var condition = exprVisitor.visit(conditionNode);
-        code.append(condition.getComputation());
+        var thenRes = visit(thenNode);
+        var elseRes = visit(elseNode);
 
-        // get a label
+        // get two labels
         var thenLabel = OptUtils.getLabel();
+        var endLabel = OptUtils.getLabel();
 
-        // add jump : if condition.code goto label;
+        // add if (cond) goto thenLabel;
+        code.append(condition.getComputation());
         code.append("if");
         code.append(SPACE);
         code.append(L_PAREN);
@@ -184,23 +186,20 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append(END_STMT);
 
         // add else stmt
-        var elseRes = visit(elseNode);
         code.append(elseRes);
 
-        // add goto for outside the if : goto label;
-        var endLabel = OptUtils.getLabel();
+        // add goto endLabel;
         code.append("goto");
         code.append(SPACE);
         code.append(endLabel);
         code.append(END_STMT);
 
-        // add then label
+        // add thenLabel:
         code.append(thenLabel);
         code.append(DOUBLE_DOT);
         code.append(NL);
 
         // add then stmt
-        var thenRes = visit(thenNode);
         code.append(thenRes);
 
         // add end label
@@ -274,10 +273,17 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         // code to compute self
         // statement has type of lhs
-        Type thisType = TypeUtils.getStmtType(node, table);
-        String typeString = OptUtils.toOllirType(thisType);
+        var varRefType = TypeUtils.getVarRefType(variableName, table, node.getAncestor(METHOD_DECL));
+        if (varRefType== null){
+            return "";
+        }
 
-        if (isAssigningField(node)){
+        Type type = varRefType.a;
+        String scope = varRefType.b;
+
+        String typeString = OptUtils.toOllirType(type);
+
+        if (scope.equals("field")){
             return "putfield(this, " + variableName + typeString + ", " +  rhs.getCode() + ").V" + END_STMT;
         }
 
@@ -292,42 +298,16 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append(rhs.getCode());
 
         code.append(END_STMT);
-
         return code.toString();
-    }
-
-    private boolean isAssigningField(JmmNode node){
-        var methodNodeOp = node.getAncestor(METHOD_DECL);
-
-        if (methodNodeOp.isEmpty()) return false;
-
-        var methodNode = methodNodeOp.get();
-        var methodName = methodNode.get("name");
-        var assignName = node.get("name");
-
-        // check if its a param or local variable first
-
-        if(table.getLocalVariables(methodName).stream().anyMatch(
-                sym -> sym.getName().equals(assignName)
-        )){
-            return false;
-        }
-
-        if(table.getParameters(methodName).stream().anyMatch(
-                sym -> sym.getName().equals(assignName)
-        )){
-            return false;
-        }
-
-        return table.getFields().stream().anyMatch(
-                sym -> sym.getName().equals(assignName)
-        );
     }
 
 
     private String visitReturn(JmmNode node, Void unused) {
+        var method = node.getAncestor(METHOD_DECL);
+        if (method.isEmpty()) return "";
 
-        String methodName = node.getAncestor(METHOD_DECL).map(method -> method.get("name")).orElseThrow();
+        String methodName = node.getAncestor(METHOD_DECL).get().get("name");
+
         Type retType = table.getReturnType(methodName);
 
         StringBuilder code = new StringBuilder();
