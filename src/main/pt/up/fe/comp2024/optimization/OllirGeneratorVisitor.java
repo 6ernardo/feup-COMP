@@ -79,12 +79,28 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append(valueRes.getComputation());
 
         // get type of assigment
-        Type assignType = TypeUtils.getStmtType(node, table);
+        var assign = TypeUtils.getVarRefType(id, table, node.getAncestor(METHOD_DECL));
+        if (assign == null) return "";
+        Type assignType = assign.a;
+        String scope = assign.b;
+
+        String targetType = OptUtils.toOllirType(assignType);
         Type elementType = new Type(assignType.getName(), false);
         String assignTypeString = OptUtils.toOllirType(elementType);
 
+        String target = id;
+
+        if (scope.equals("field")) {
+            // create tmp var
+            target = OptUtils.getTemp();
+            // assign field to tmp
+            code.append(target).append(targetType)
+                    .append(SPACE).append(ASSIGN).append(targetType).append(SPACE)
+                    .append("getfield(this, ").append(id).append(targetType).append(")").append(targetType).append(END_STMT);
+        }
+
         // write assignment
-        code.append(id).append("[").append(indexRes.getCode()).append("]").append(assignTypeString);
+        code.append(target).append("[").append(indexRes.getCode()).append("]").append(assignTypeString);
         code.append(SPACE).append(ASSIGN).append(assignTypeString).append(SPACE);
         code.append(valueRes.getCode()).append(END_STMT);
 
