@@ -163,14 +163,12 @@ public class JasminGenerator {
         // Add limits
         code.append(TAB).append(".limit stack 99").append(NL);
 
-        Set<Integer> regs = new TreeSet<>();
-        regs.add(0);
+        int locals = method.isStaticMethod() ? 0 : 1;
         for(Descriptor var : method.getVarTable().values()){
-            regs.add(var.getVirtualReg());
+            locals = Math.max(locals, var.getVirtualReg() + 1);
         }
 
-        code.append(TAB).append(".limit locals " + regs.size()).append(NL);
-        //code.append(TAB).append(".limit locals 99").append(NL);
+        code.append(TAB).append(".limit locals " + locals + NL);
 
         HashMap<String,Instruction> labels = method.getLabels();
         for (var inst : method.getInstructions()) {
@@ -211,9 +209,7 @@ public class JasminGenerator {
             if (((CallInstruction) assign.getRhs()).getInvocationType() == CallType.invokevirtual || ((CallInstruction) assign.getRhs()).getInvocationType() == CallType.invokestatic){
                 this.needsPop = false;
             }
-
         }
-
         // generate code for loading what's on the right
         code.append(generators.apply(assign.getRhs()));
 
