@@ -31,6 +31,9 @@ public class JasminGenerator {
 
     boolean needsPop = false;
 
+    private int current_stack;
+    private int stack_limit;
+
     private final FunctionClassMap<TreeNode, String> generators;
 
     public JasminGenerator(OllirResult ollirResult) {
@@ -61,6 +64,11 @@ public class JasminGenerator {
 
     public List<Report> getReports() {
         return reports;
+    }
+
+    private void updateStack(int n){
+        this.current_stack += n;
+        this.stack_limit = Math.max(this.current_stack, this.stack_limit);
     }
 
     public String build() {
@@ -157,20 +165,17 @@ public class JasminGenerator {
         methodSignature.append(")");
         methodSignature.append(getTypeSignature(method.getReturnType()));
 
-        // Append the method signature to the code
-        code.append("\n.method ").append(modifier).append(static_).append(final_).append(methodName).append(methodSignature).append(NL);
-
-        // Add limits
-        code.append(TAB).append(".limit stack 99").append(NL);
-
+        // Calculate local limits
         int locals = method.isStaticMethod() ? 0 : 1;
         for(Descriptor var : method.getVarTable().values()){
             locals = Math.max(locals, var.getVirtualReg() + 1);
         }
 
-        code.append(TAB).append(".limit locals " + locals + NL);
+        this.stack_limit = 0;
+        this.current_stack = 0;
 
         HashMap<String,Instruction> labels = method.getLabels();
+        var instruction_code = new StringBuilder();
         for (var inst : method.getInstructions()) {
 
             if((inst instanceof CallInstruction) && ((CallInstruction) inst).getReturnType().getTypeOfElement() != ElementType.VOID
@@ -191,9 +196,15 @@ public class JasminGenerator {
                 }
             }
 
-            code.append(instCode);
+            instruction_code.append(instCode);
         }
 
+        // Append the method signature to the code
+        code.append("\n.method ").append(modifier).append(static_).append(final_).append(methodName).append(methodSignature).append(NL);
+        // Add limits
+        code.append(TAB).append(".limit stack ").append(this.stack_limit).append(NL);
+        code.append(TAB).append(".limit locals ").append(locals).append(NL);
+        code.append(instruction_code);
         code.append(".end method\n");
 
         // unset method
@@ -226,14 +237,25 @@ public class JasminGenerator {
         var reg_number = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
         var reg = reg_number < 4 ? "_" + reg_number : " " + reg_number;
 
-        code.append(
-                switch (assign.getTypeOfAssign().getTypeOfElement()) {
-                    case INT32, BOOLEAN -> currentMethod.getVarTable().get(operand.getName()).getVarType().getTypeOfElement()
-                            == ElementType.ARRAYREF ? "iastore" : "istore";
-                    case OBJECTREF, THIS, STRING, ARRAYREF -> "astore";
-                    default -> "error";
+        var command = new StringBuilder();
+        switch (assign.getTypeOfAssign().getTypeOfElement()) {
+            case INT32, BOOLEAN:
+                if(currentMethod.getVarTable().get(operand.getName()).getVarType().getTypeOfElement()
+                        == ElementType.ARRAYREF){
+                    command.append("iastore");
                 }
-        ).append(reg).append(NL).append(NL);
+                else {
+                    command.append("istore");
+                }
+                break;
+            case OBJECTREF, THIS, STRING, ARRAYREF:
+                command.append("astore");
+                break;
+            default:
+                command.append("error");
+        }
+
+        code.append(command).append(reg).append(NL).append(NL);
 
         return code.toString();
     }
@@ -260,6 +282,8 @@ public class JasminGenerator {
 
             result += (value == -1) ? "m1" : value;
         }
+
+        this.updateStack(1);
         return result + NL;
     }
 
@@ -267,6 +291,8 @@ public class JasminGenerator {
         // get register
         var reg_number = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
         var reg = reg_number < 4 ? "_" + reg_number : " " + reg_number;
+
+        this.updateStack(1);
 
         switch (operand.getType().getTypeOfElement()) {
             case THIS -> {
@@ -438,8 +464,6 @@ public class JasminGenerator {
             var name = this.getImportedClassName(((ClassType) callInstruction.getCaller().getType()).getName()) + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
             var invoke = callInstruction.getInvocationType().name() + " " + name + "(" + args + ")" + getTypeSignature(callInstruction.getReturnType());
             code.append(load).append(NL).append(loads).append(invoke).append(NL);
-
-
 
         }
         else if(callInstruction.getInvocationType() == CallType.invokestatic) {
