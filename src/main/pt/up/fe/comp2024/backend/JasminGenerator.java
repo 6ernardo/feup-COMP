@@ -59,27 +59,6 @@ public class JasminGenerator {
         generators.put(UnaryOpInstruction.class, this::generateUnaryOp);
     }
 
-    private String generateOpCond(OpCondInstruction inst) {
-        var code = new StringBuilder();
-
-        var label = inst.getLabel();
-        var cond = inst.getCondition();
-
-        // TODO
-        // determine what branch instruction to use out of
-        // if_acmpeq, if_acmpne, if_icmpeq, if_icmpge, if_icmpgt, if_icmple, if_icmplt, if_icmpne
-
-        // for now assume we are doing "<" between integers
-        var lhs = cond.getOperands().get(0);
-        var rhs = cond.getOperands().get(1);
-
-        code.append(generators.apply(lhs));
-        code.append(generators.apply(rhs));
-
-        code.append("if_icmplt ").append(label).append(NL);
-        return code.toString();
-    }
-
     public List<Report> getReports() {
         return reports;
     }
@@ -191,6 +170,7 @@ public class JasminGenerator {
         }
 
         code.append(TAB).append(".limit locals " + regs.size()).append(NL);
+        //code.append(TAB).append(".limit locals 99").append(NL);
 
         HashMap<String,Instruction> labels = method.getLabels();
         for (var inst : method.getInstructions()) {
@@ -512,6 +492,27 @@ public class JasminGenerator {
         return name;
     }
 
+    private String generateOpCond(OpCondInstruction inst) {
+        var code = new StringBuilder();
+
+        var label = inst.getLabel();
+        var cond = inst.getCondition();
+
+        // TODO
+        // determine what branch instruction to use out of
+        // if_acmpeq, if_acmpne, if_icmpeq, if_icmpge, if_icmpgt, if_icmple, if_icmplt, if_icmpne
+
+        // for now assume we are doing "<" between integers
+        var lhs = cond.getOperands().get(0);
+        var rhs = cond.getOperands().get(1);
+
+        code.append(generators.apply(lhs));
+        code.append(generators.apply(rhs));
+
+        code.append("if_icmplt ").append(label).append(NL);
+        return code.toString();
+    }
+
     private String generateSingleOpCond(SingleOpCondInstruction singleOpCondInstruction){
         // generate code like: "iflt label"
         // add the condition to the stack
@@ -522,7 +523,7 @@ public class JasminGenerator {
         StringBuilder res = new StringBuilder();
 
         res.append(code);
-        res.append("goto ").append(singleOpCondInstruction.getLabel()).append(NL);
+        res.append("ifne ").append(singleOpCondInstruction.getLabel()).append(NL);
 
         return res.toString();
 
