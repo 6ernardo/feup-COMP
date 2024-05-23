@@ -435,18 +435,21 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
     private OllirExprResult visitBinExpr(JmmNode node, Void unused) {
 
+        String op = node.get("op");
+        var opRtrnType = TypeUtils.getOperatorReturnType(op);
+
+        if (op.equals("&&") ){
+            return visitShortCircuitAnd(node);
+        }
+        if (op.equals("||")){
+            // TODO: implement short circuit or
+            //return visitShortCircuitOr(node);
+        }
+
         var lhs = node.getJmmChild(0);
         var rhs = node.getJmmChild(1);
         var lhs_result = visit(lhs);
         var rhs_result = visit(rhs);
-
-        // get operator
-        String op = node.get("op");
-        var opRtrnType = TypeUtils.getOperatorReturnType(op);
-
-        if (op.equals("&&") || op.equals("||")){
-            return visitShortCircuitExpr(node, lhs_result, rhs_result,op);
-        }
 
         StringBuilder computation = new StringBuilder();
 
@@ -467,53 +470,58 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         return new OllirExprResult(code, computation);
     }
 
-    private OllirExprResult visitShortCircuitExpr(JmmNode node, OllirExprResult lhsResult,
-                                                  OllirExprResult rhsResult, String op) {
+    private OllirExprResult visitShortCircuitAnd(JmmNode node) {
         StringBuilder computation = new StringBuilder();
         StringBuilder code = new StringBuilder();
 
-        // get labels
-        String endLabel = OptUtils.getLabel();
+        var lhs = node.getJmmChild(0);
+        var rhs = node.getJmmChild(1);
 
-        // get tmp variable
-        String tmpVar = OptUtils.getTemp() + ".bool";
+        var lhs_result = visit(lhs);
+        var rhs_result = visit(rhs);
 
-        // add computation of lhs
-        computation.append(lhsResult.getComputation());
+        // structure of a short circuit and
+        // compute lhs
+        // if lhs goto true_label
+        // res = false
+        // goto end_label
+        // true_label:
+        // compute rhs
+        // res = rhs
+        // end_label:
 
-        if (op.equals("&&")) {
-            // get another label
-            String andLabel = OptUtils.getLabel();
-            computation.append("if ")
-                    .append(LEFT_PAREN).append(lhsResult.getCode()).append(RIGHT_PAREN)
-                    .append(" goto ").append(andLabel).append(END_STMT);
-            computation.append(tmpVar).append(SPACE).append(ASSIGN).append(".bool")
-                    .append(SPACE).append("0.bool").append(END_STMT);
-            computation.append("goto ").append(endLabel).append(END_STMT);
-            computation.append(andLabel).append(":").append(NEW_LINE);
-        } else {
-            // assign true to tmpVar
-            // TODO: check if there is a better way to do this with less assignments
-            computation.append(tmpVar).append(SPACE).append(ASSIGN).append(".bool")
-                    .append(SPACE).append("1.bool").append(END_STMT);
-            computation.append("if ")
-                    .append(LEFT_PAREN).append(lhsResult.getCode()).append(RIGHT_PAREN)
-                    .append(" goto ").append(endLabel).append(END_STMT);
-        }
+        // create labels
+        String trueLabel = OptUtils.getLabel("true");
+        String endLabel = OptUtils.getLabel("end");
 
-        // add computation of rhs
-        computation.append(rhsResult.getComputation());
+        // get res variable
+        String resVar = OptUtils.getTemp() + ".bool";
 
-        // assign the result of rhs to tmpVar
-        computation.append(tmpVar).append(SPACE).append(ASSIGN)
-                .append(".bool").append(SPACE).append(rhsResult.getCode()).append(END_STMT);
+        // compute lhs
+        computation.append(lhs_result.getComputation());
 
-        // add endLabel
+        // if lhs goto true_label
+        computation.append("if (").append(lhs_result.getCode()).append(") goto ").append(trueLabel).append(END_STMT);
+
+        // res = false
+        computation.append(resVar).append(SPACE).append(ASSIGN).append(".bool").append(SPACE).append("0.bool").append(END_STMT);
+
+        // goto end_label
+        computation.append("goto ").append(endLabel).append(END_STMT);
+
+        // true_label:
+        computation.append(trueLabel).append(":").append(NEW_LINE);
+
+        // compute rhs
+        computation.append(rhs_result.getComputation());
+
+        // res = rhs
+        computation.append(resVar).append(SPACE).append(ASSIGN).append(".bool").append(SPACE).append(rhs_result.getCode()).append(END_STMT);
+
+        // end_label:
         computation.append(endLabel).append(":").append(NEW_LINE);
 
-        // add tmpVar to code
-        code.append(tmpVar);
-
+        code.append(resVar);
         return new OllirExprResult(code.toString(), computation.toString());
     }
 

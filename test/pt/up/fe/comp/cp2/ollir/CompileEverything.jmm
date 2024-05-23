@@ -1,79 +1,13 @@
-import normal;
-import complex.Taked.stuff;
-
 class A extends normal{
-    int fieldint;
-    boolean fieldbool;
-    String fieldString;
-    int[] fieldArray;
-    A fielda;
 
-    public static void main(String[] args){
-    }
-
-    public int testIntField(){
-        int a;
-        boolean b;
-        String s;
-        A ains;
-        normal n;
-
-        fieldint = 4;
-        a = fieldint+4;
-        return 0;
-    }
-
-    int testVarArgs2(int... b){
-        b[0] = this.testVarArgs(1,2,3);
-
-        return b[0];
-    }
-
-    int testComplexImport(){
-        stuff s;
-        s = new stuff();
-        return 0;
-    }
-
-    public boolean testbool(){
-       return true;
-    }
-
-    int testArray(){
-        int[] a;
-        a = new int[10];
-        a = new int[10];
-        a[0] = 1;
-        return a[0];
-    }
-
-    int testVarArgs(int... a){
-
+    public int testAnd(){
+        boolean b1;
+        boolean b2;
+        boolean b3;
         int res;
-        fieldint = a[0];
-        fieldint = fieldArray[0] + fieldint;
-        if(!(a.length < 1)){
-            res = a[0];
-        }else{
-            res = 0;
-        }
+
+        b1 = b1 && (b2 && b3);
+
         return res;
     }
-
-    public int testControlFlow(int p1, int p2){
-        int a;
-        boolean b;
-
-        b = true;
-        if ( b && p1 < p2 && this.testbool() && fieldbool ){
-           a = 1;
-        }else{
-            a =2;
-        }
-
-        return a;
-
-    }
-
-
 }
