@@ -31,6 +31,9 @@ public class JasminGenerator {
 
     boolean needsPop = false;
 
+    private int current_stack;
+    private int stack_limit;
+
     private final FunctionClassMap<TreeNode, String> generators;
 
     public JasminGenerator(OllirResult ollirResult) {
@@ -53,35 +56,19 @@ public class JasminGenerator {
         generators.put(PutFieldInstruction.class, this::generatePutFields);
         generators.put(GetFieldInstruction.class, this::generateGetFields);
         generators.put(CallInstruction.class, this::generateCall);
-        generators.put(SingleOpCondInstruction.class, this::generateSingleOpCod);
         generators.put(GotoInstruction.class, this::generateGoto);
+        generators.put(SingleOpCondInstruction.class, this::generateSingleOpCond);
         generators.put(OpCondInstruction.class, this::generateOpCond);
         generators.put(UnaryOpInstruction.class, this::generateUnaryOp);
     }
 
-    private String generateOpCond(OpCondInstruction inst) {
-        var code = new StringBuilder();
-
-        var label = inst.getLabel();
-        var cond = inst.getCondition();
-
-        // TODO
-        // determine what branch instruction to use out of
-        // if_acmpeq, if_acmpne, if_icmpeq, if_icmpge, if_icmpgt, if_icmple, if_icmplt, if_icmpne
-
-        // for now assume we are doing "<" between integers
-        var lhs = cond.getOperands().get(0);
-        var rhs = cond.getOperands().get(1);
-
-        code.append(generators.apply(lhs));
-        code.append(generators.apply(rhs));
-
-        code.append("if_icmplt ").append(label).append(NL);
-        return code.toString();
-    }
-
     public List<Report> getReports() {
         return reports;
+    }
+
+    private void updateStack(int n){
+        this.current_stack += n;
+        this.stack_limit = Math.max(this.current_stack, this.stack_limit);
     }
 
     public String build() {
@@ -178,21 +165,17 @@ public class JasminGenerator {
         methodSignature.append(")");
         methodSignature.append(getTypeSignature(method.getReturnType()));
 
-        // Append the method signature to the code
-        code.append("\n.method ").append(modifier).append(static_).append(final_).append(methodName).append(methodSignature).append(NL);
-
-        // Add limits
-        code.append(TAB).append(".limit stack 99").append(NL);
-
-        Set<Integer> regs = new TreeSet<>();
-        regs.add(0);
+        // Calculate local limits
+        int locals = method.isStaticMethod() ? 0 : 1;
         for(Descriptor var : method.getVarTable().values()){
-            regs.add(var.getVirtualReg());
+            locals = Math.max(locals, var.getVirtualReg() + 1);
         }
 
-        code.append(TAB).append(".limit locals " + regs.size()).append(NL);
+        this.stack_limit = 0;
+        this.current_stack = 0;
 
         HashMap<String,Instruction> labels = method.getLabels();
+        var instruction_code = new StringBuilder();
         for (var inst : method.getInstructions()) {
 
             if((inst instanceof CallInstruction) && ((CallInstruction) inst).getReturnType().getTypeOfElement() != ElementType.VOID
@@ -204,6 +187,7 @@ public class JasminGenerator {
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
                     .collect(Collectors.joining(NL + TAB, TAB, NL));
 
+            // *********************** NEEDED FOR CONTROL FLOW TESTS *******************************
             for (Map.Entry<String, Instruction> entry : labels.entrySet()) {
                 if (entry.getValue() == inst) {
                     // Prepend the label to the instruction code
@@ -212,9 +196,15 @@ public class JasminGenerator {
                 }
             }
 
-            code.append(instCode);
+            instruction_code.append(instCode);
         }
 
+        // Append the method signature to the code
+        code.append("\n.method ").append(modifier).append(static_).append(final_).append(methodName).append(methodSignature).append(NL);
+        // Add limits
+        code.append(TAB).append(".limit stack ").append(this.stack_limit).append(NL);
+        code.append(TAB).append(".limit locals ").append(locals).append(NL);
+        code.append(instruction_code);
         code.append(".end method\n");
 
         // unset method
@@ -230,9 +220,7 @@ public class JasminGenerator {
             if (((CallInstruction) assign.getRhs()).getInvocationType() == CallType.invokevirtual || ((CallInstruction) assign.getRhs()).getInvocationType() == CallType.invokestatic){
                 this.needsPop = false;
             }
-
         }
-
         // generate code for loading what's on the right
         code.append(generators.apply(assign.getRhs()));
 
@@ -249,14 +237,25 @@ public class JasminGenerator {
         var reg_number = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
         var reg = reg_number < 4 ? "_" + reg_number : " " + reg_number;
 
-        code.append(
-                switch (assign.getTypeOfAssign().getTypeOfElement()) {
-                    case INT32, BOOLEAN -> currentMethod.getVarTable().get(operand.getName()).getVarType().getTypeOfElement()
-                            == ElementType.ARRAYREF ? "iastore" : "istore";
-                    case OBJECTREF, THIS, STRING, ARRAYREF -> "astore";
-                    default -> "error";
+        var command = new StringBuilder();
+        switch (assign.getTypeOfAssign().getTypeOfElement()) {
+            case INT32, BOOLEAN:
+                if(currentMethod.getVarTable().get(operand.getName()).getVarType().getTypeOfElement()
+                        == ElementType.ARRAYREF){
+                    command.append("iastore");
                 }
-        ).append(reg).append(NL).append(NL);
+                else {
+                    command.append("istore");
+                }
+                break;
+            case OBJECTREF, THIS, STRING, ARRAYREF:
+                command.append("astore");
+                break;
+            default:
+                command.append("error");
+        }
+
+        code.append(command).append(reg).append(NL).append(NL);
 
         return code.toString();
     }
@@ -283,6 +282,8 @@ public class JasminGenerator {
 
             result += (value == -1) ? "m1" : value;
         }
+
+        this.updateStack(1);
         return result + NL;
     }
 
@@ -290,6 +291,8 @@ public class JasminGenerator {
         // get register
         var reg_number = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
         var reg = reg_number < 4 ? "_" + reg_number : " " + reg_number;
+
+        this.updateStack(1);
 
         switch (operand.getType().getTypeOfElement()) {
             case THIS -> {
@@ -444,7 +447,6 @@ public class JasminGenerator {
 
             var invoke = callInstruction.getInvocationType().name() + " " + name + "/<init>(" + args + ")" + getTypeSignature(callInstruction.getReturnType());
             code.append(load).append(NL).append(invoke).append(NL);
-            //code.append("pop").append(NL); // always pops the return value cause it's a constructor
         }
         else if(callInstruction.getInvocationType() == CallType.invokevirtual){
             var load = generators.apply(callInstruction.getCaller());
@@ -462,8 +464,6 @@ public class JasminGenerator {
             var name = this.getImportedClassName(((ClassType) callInstruction.getCaller().getType()).getName()) + "/" + ((LiteralElement) callInstruction.getMethodName()).getLiteral().replace("\"", "");
             var invoke = callInstruction.getInvocationType().name() + " " + name + "(" + args + ")" + getTypeSignature(callInstruction.getReturnType());
             code.append(load).append(NL).append(loads).append(invoke).append(NL);
-
-
 
         }
         else if(callInstruction.getInvocationType() == CallType.invokestatic) {
@@ -490,8 +490,6 @@ public class JasminGenerator {
             code.append(aux).append("arraylength").append(NL);
         }
 
-        //outros???
-
         if (this.needsPop){
             code.append("pop").append(NL);
             this.needsPop = false;
@@ -514,7 +512,28 @@ public class JasminGenerator {
         return name;
     }
 
-    private String generateSingleOpCod(SingleOpCondInstruction singleOpCondInstruction){
+    private String generateOpCond(OpCondInstruction inst) {
+        var code = new StringBuilder();
+
+        var label = inst.getLabel();
+        var cond = inst.getCondition();
+
+        // TODO
+        // determine what branch instruction to use out of
+        // if_acmpeq, if_acmpne, if_icmpeq, if_icmpge, if_icmpgt, if_icmple, if_icmplt, if_icmpne
+
+        // for now assume we are doing "<" between integers
+        var lhs = cond.getOperands().get(0);
+        var rhs = cond.getOperands().get(1);
+
+        code.append(generators.apply(lhs));
+        code.append(generators.apply(rhs));
+
+        code.append("if_icmplt ").append(label).append(NL);
+        return code.toString();
+    }
+
+    private String generateSingleOpCond(SingleOpCondInstruction singleOpCondInstruction){
         // generate code like: "iflt label"
         // add the condition to the stack
 
@@ -524,10 +543,10 @@ public class JasminGenerator {
         StringBuilder res = new StringBuilder();
 
         res.append(code);
-        res.append("iflt ").append(singleOpCondInstruction.getLabel()).append(NL);
-
+        res.append("ifne ").append(singleOpCondInstruction.getLabel()).append(NL);
 
         return res.toString();
+
     }
 
     private String generateGoto(GotoInstruction gotoInstruction) {
@@ -535,8 +554,14 @@ public class JasminGenerator {
     }
 
     private String generateUnaryOp(UnaryOpInstruction unaryOpInstruction) {
-        // **** TO COMPLETE **** //
-        return "";
+        var code = new StringBuilder();
+        var load = generators.apply(unaryOpInstruction.getOperand());
+
+        if(unaryOpInstruction.getOperation().getOpType() == OperationType.NOTB){
+            code.append(load).append(load).append("ixor").append(NL);
+        }
+
+        return code.toString();
     }
 
 }
