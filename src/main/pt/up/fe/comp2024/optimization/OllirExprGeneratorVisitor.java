@@ -523,6 +523,10 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         Type type = TypeUtils.getExprType(node, table); // get the type of the variable
 
+        if(type == null){
+           return OllirExprResult.EMPTY;
+        }
+
         String scope = (String)type.getObject("scope");
 
         if (scope.equals("import")){
