@@ -1,17 +1,25 @@
-import t;
-import out;
+import io;
+class A
+{
+    int l;
+    int[] field;
 
-class Everything extends t{
+    public int call(int... a)
+    {
+        return a.length;
 
-    public static void main(String[] args) {
-        Everything e;
-        e = new Everything();
-        e.t();
     }
 
-    int test(int... a){
-        int[] b;
-        b = a;
-        return 12;
-     }
+    public int foo(int[] a)
+    {
+    int[] m;
+    int i;
+    int j;
+    int k;
+    int[] aux;
+    a[0] = this.call(field[1],field[2],field[3]);
+    return a.length;
+    }
+
+
 }

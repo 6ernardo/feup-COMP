@@ -101,7 +101,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         }
 
         // write assignment
-        code.append(target).append("[").append(indexRes.getCode()).append("]").append(assignTypeString);
+        code.append(target).append(targetType).append("[").append(indexRes.getCode()).append("]").append(assignTypeString);
         code.append(SPACE).append(ASSIGN).append(assignTypeString).append(SPACE);
         code.append(valueRes.getCode()).append(END_STMT);
 

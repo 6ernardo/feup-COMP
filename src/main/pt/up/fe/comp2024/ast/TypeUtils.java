@@ -304,7 +304,9 @@ public class TypeUtils {
     }
 
     public static boolean isPrimitive(Type assignType) {
-        return assignType.getName().equals(INT_TYPE_NAME) || assignType.getName().equals(BOOLEAN_TYPE_NAME);
+        return assignType.getName().equals(INT_TYPE_NAME)
+                || assignType.getName().equals(BOOLEAN_TYPE_NAME)
+                || assignType.getName().equals(STRING_TYPE_NAME);
     }
 
     public static boolean isField(String name , String methodSignature, SymbolTable table){
