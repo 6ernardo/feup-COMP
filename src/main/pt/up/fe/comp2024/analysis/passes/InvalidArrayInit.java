@@ -47,6 +47,9 @@ public class InvalidArrayInit extends AnalysisVisitor {
     private Void visitArrayCreationExpr(JmmNode arrayCreationExpr, SymbolTable table) {
         SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
 
+        if (arrayCreationExpr.getNumChildren() == 0){
+            return null;
+        }
         Type arrayElemntType = TypeUtils.getExprType(arrayCreationExpr.getChild(0), table);
         if (arrayCreationExpr.getChildren().stream().anyMatch(child -> !TypeUtils.getExprType(child, table).equals(arrayElemntType))) {
             // Create error report

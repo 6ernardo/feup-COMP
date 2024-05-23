@@ -1,16 +1,13 @@
-import ioPlus;
-import test.popo;
-class ComplexArrayAccess {
-    int[] field1;
+class A extends normal{
 
-    public int func(int a) {
-        int[] b;
-        field1[0] = a;
-        field1 = b;
-        return field1[a];
-    }
+    public int testAnd(){
+        boolean b1;
+        boolean b2;
+        boolean b3;
+        int res;
 
-    public static void main(String[] args) {
-        String s;
+        b1 = b1 && (b2 && b3);
+
+        return res;
     }
 }

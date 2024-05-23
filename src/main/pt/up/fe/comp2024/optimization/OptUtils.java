@@ -22,8 +22,16 @@ public class OptUtils {
     }
 
     public static String getLabel() {
+        return getLabel("label");
+    }
+
+    public static String getLabel(String prefix) {
+        return prefix + getNextLabelNum();
+    }
+
+    public static int getNextLabelNum() {
         labelNumber += 1;
-        return "label" + labelNumber;
+        return labelNumber;
     }
 
     public static String getTemp(String prefix) {

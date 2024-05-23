@@ -301,22 +301,21 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         String typeString = OptUtils.toOllirType(type);
 
         if (scope.equals("field")){
-            return "putfield(this."+table.getClassName()
-                    +", " + variableName + typeString + ", "
-                    +  rhs.getCode() + ").V" + END_STMT;
+            code.append("putfield(this.").append(table.getClassName())
+                    .append(", ").append(variableName).append(typeString)
+                    .append(", ").append(rhs.getCode()).append(").V").append(END_STMT);
+        }else {
+            code.append(variableName);
+            code.append(typeString);
+            code.append(SPACE);
+
+            code.append(ASSIGN);
+            code.append(typeString);
+            code.append(SPACE);
+
+            code.append(rhs.getCode());
+            code.append(END_STMT);
         }
-
-        code.append(variableName);
-        code.append(typeString);
-        code.append(SPACE);
-
-        code.append(ASSIGN);
-        code.append(typeString);
-        code.append(SPACE);
-
-        code.append(rhs.getCode());
-
-        code.append(END_STMT);
         return code.toString();
     }
 

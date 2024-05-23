@@ -57,18 +57,22 @@ public class TypeUtils {
         // check if there is an entry for the variable in the method
         if (currentMethod.isPresent()) {
             var currentMethodNode = currentMethod.get();
-            List<Symbol> methodsLocals = table.getLocalVariables(currentMethodNode.get("name"));
-            for (Symbol s : methodsLocals) {
-                if (s.getName().equals(variableName)) {
-                    return s.getType();
+            var methodName = currentMethodNode.get("name");
+
+            if (table.getMethods().contains(methodName)) {
+                List<Symbol> methodsLocals = table.getLocalVariables(currentMethodNode.get("name"));
+                for (Symbol s : methodsLocals) {
+                    if (s.getName().equals(variableName)) {
+                        return s.getType();
+                    }
                 }
-            }
-            // check if the variable is a parameter
-            var params = table.getParameters(currentMethodNode.get("name"));
-            for (Symbol s : params) {
-                if (s.getName().equals(variableName)) {
-                    // check if its a varargs and if so return array type instead
-                    return s.getType();
+                // check if the variable is a parameter
+                var params = table.getParameters(currentMethodNode.get("name"));
+                for (Symbol s : params) {
+                    if (s.getName().equals(variableName)) {
+                        // check if its a varargs and if so return array type instead
+                        return s.getType();
+                    }
                 }
             }
         }
@@ -147,6 +151,9 @@ public class TypeUtils {
     }
 
     private static Type getArrayInitType(JmmNode arrayCreationExpr, SymbolTable table) {
+        if (arrayCreationExpr.getNumChildren() == 0){
+            return new Type(getIntTypeName(), true);
+        }
         var type = getExprType(arrayCreationExpr.getChild(0), table);
         return new Type(type.getName(), true);
     }
