@@ -529,7 +529,39 @@ public class JasminGenerator {
         code.append(generators.apply(lhs));
         code.append(generators.apply(rhs));
 
-        code.append("if_icmplt ").append(label).append(NL);
+        //code.append(cond.getOperation().getOpType().name()).append(NL);
+
+        if(cond.getOperation().getOpType() == OperationType.GTE){
+
+        }
+        else if(cond.getOperation().getOpType() == OperationType.LTH){
+
+        }
+
+        switch (cond.getOperation().getOpType()){
+            case GTE:
+                code.append("if_icmpge ");
+                break;
+            case LTH:
+                //code.append("LHS: ").append(lhs).append(" RHS: ").append(rhs).append(NL);
+                code.append("if_icmplt ");
+                break;
+            case EQ:
+                code.append("if_icmpeq ");
+                break;
+            case GTH:
+                code.append("if_icmpgt ");
+                break;
+            case LTE:
+                code.append("if_icmple ");
+            case NEQ:
+                code.append("if_icmpne ");
+                break;
+            default:
+                break;
+        }
+
+        code.append(label).append(NL);
         return code.toString();
     }
 
@@ -558,7 +590,7 @@ public class JasminGenerator {
         var load = generators.apply(unaryOpInstruction.getOperand());
 
         if(unaryOpInstruction.getOperation().getOpType() == OperationType.NOTB){
-            code.append(load).append(load).append("ixor").append(NL);
+            code.append(load).append("iconst_1").append(NL).append("ixor").append(NL);
         }
 
         return code.toString();
