@@ -529,7 +529,38 @@ public class JasminGenerator {
         code.append(generators.apply(lhs));
         code.append(generators.apply(rhs));
 
-        code.append("if_icmplt ").append(label).append(NL);
+        //code.append(cond.getOperation().getOpType().name()).append(NL);
+
+        switch (cond.getOperation().getOpType()){
+            case GTE:
+                code.append("isub").append(NL);
+                code.append("ifge ");
+                break;
+            case LTH:
+                //code.append("LHS: ").append(lhs).append(" RHS: ").append(rhs).append(NL);
+                code.append("isub").append(NL);
+                code.append("iflt ");
+                break;
+            case EQ:
+                code.append("isub").append(NL);
+                code.append("ifeq ");
+                break;
+            case GTH:
+                code.append("isub").append(NL);
+                code.append("ifgt ");
+                break;
+            case LTE:
+                code.append("isub").append(NL);
+                code.append("ifle ");
+            case NEQ:
+                code.append("isub").append(NL);
+                code.append("ifne ");
+                break;
+            default:
+                break;
+        }
+
+        code.append(label).append(NL);
         return code.toString();
     }
 
@@ -558,7 +589,7 @@ public class JasminGenerator {
         var load = generators.apply(unaryOpInstruction.getOperand());
 
         if(unaryOpInstruction.getOperation().getOpType() == OperationType.NOTB){
-            code.append(load).append(load).append("ixor").append(NL);
+            code.append(load).append("iconst_1").append(NL).append("ixor").append(NL);
         }
 
         return code.toString();
