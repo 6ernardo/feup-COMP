@@ -1,16 +1,15 @@
-import ioPlus;
-import test.popo;
-class ComplexArrayAccess {
-    int[] field1;
-
-    public int func(int a) {
-        int[] b;
-        field1[0] = a;
-        field1 = b;
-        return field1[a];
+class A
+    {
+    public int foo(int... a)
+    {
+        return 1;
     }
 
-    public static void main(String[] args) {
-        String s;
+    public int call()
+    {
+        int f;
+        f = this.foo();
+        return f;
     }
+
 }

@@ -39,7 +39,7 @@ public class IncompatibleArguments extends AnalysisVisitor {
         var parameters = table.getParameters(methodCall.get("name"));
         var arguments = methodCall.getChildren();
 
-        if (arguments.size()-1 < parameters.size()){ // check if there were too little arguments
+        if (arguments.size()-1 < parameters.size()-1){ // check if there were too little arguments
             var message = "Method " + methodCall.get("name") + " requires " + parameters.size() +
                     " arguments but only " + (arguments.size()-1) + " were provided.";
             addReport(Report.newError(
