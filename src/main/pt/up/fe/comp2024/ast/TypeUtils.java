@@ -147,6 +147,9 @@ public class TypeUtils {
     }
 
     private static Type getArrayInitType(JmmNode arrayCreationExpr, SymbolTable table) {
+        if (arrayCreationExpr.getNumChildren() == 0){
+            return new Type(getIntTypeName(), true);
+        }
         var type = getExprType(arrayCreationExpr.getChild(0), table);
         return new Type(type.getName(), true);
     }
