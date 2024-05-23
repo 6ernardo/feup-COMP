@@ -531,31 +531,30 @@ public class JasminGenerator {
 
         //code.append(cond.getOperation().getOpType().name()).append(NL);
 
-        if(cond.getOperation().getOpType() == OperationType.GTE){
-
-        }
-        else if(cond.getOperation().getOpType() == OperationType.LTH){
-
-        }
-
         switch (cond.getOperation().getOpType()){
             case GTE:
-                code.append("if_icmpge ");
+                code.append("isub").append(NL);
+                code.append("ifge ");
                 break;
             case LTH:
                 //code.append("LHS: ").append(lhs).append(" RHS: ").append(rhs).append(NL);
-                code.append("if_icmplt ");
+                code.append("isub").append(NL);
+                code.append("iflt ");
                 break;
             case EQ:
-                code.append("if_icmpeq ");
+                code.append("isub").append(NL);
+                code.append("ifeq ");
                 break;
             case GTH:
-                code.append("if_icmpgt ");
+                code.append("isub").append(NL);
+                code.append("ifgt ");
                 break;
             case LTE:
-                code.append("if_icmple ");
+                code.append("isub").append(NL);
+                code.append("ifle ");
             case NEQ:
-                code.append("if_icmpne ");
+                code.append("isub").append(NL);
+                code.append("ifne ");
                 break;
             default:
                 break;
