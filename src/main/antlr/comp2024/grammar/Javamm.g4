@@ -136,7 +136,7 @@ expr
     : LPAREN expr RPAREN #ParenExpr
     | value=INTEGER #IntegerLiteral
     | value=(TRUE |FALSE) #BoolLiteral
-    | name=(ID | MAIN | STRING) #VarRefExpr
+    | name=(ID|MAIN|STRING) #VarRefExpr
     | THIS #ThisLiteral
     | LBRACK (expr (COMMA expr)*)? RBRACK #ArrayCreationExpr
     | expr LBRACK expr RBRACK #ArrayAccessExpr
@@ -144,9 +144,9 @@ expr
     | NEW name=INT LBRACK expr RBRACK #NewArrayExpr
     | NEW name=ID LPAREN RPAREN #NewExpr
     | expr PERIOD name=ID #ArrayLengthExpr
+    | op=NOT expr #UnaryExpr
     | expr op = (MUL | DIV) expr #BinaryExpr
     | expr op = (ADD | SUB) expr #BinaryExpr
-    | op=NOT expr #UnaryExpr
     | expr op =LESS expr #BinaryExpr
     | expr op=AND expr #BinaryExpr
     ;
