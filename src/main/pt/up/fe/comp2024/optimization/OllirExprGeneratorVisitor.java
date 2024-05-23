@@ -117,20 +117,23 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         // get the ollir type
         String ollirType = OptUtils.toOllirType(elementType);
 
+        String arrayType = ".array" + ollirType;
+
         // create the array
-        String arrayVar = OptUtils.getTemp();
-        computation.append(arrayVar).append(".array").append(ollirType);
+        String arrayVar = OptUtils.getTemp("tmparray");
+        computation.append(arrayVar).append(arrayType);
         computation.append(SPACE);
-        computation.append(ASSIGN).append(".array").append(ollirType);
+        computation.append(ASSIGN).append(arrayType);
         computation.append(SPACE);
-        computation.append("new(array, ").append(exprs.size()).append(".i32").append(").array").append(ollirType);
+        computation.append("new(array, ").append(exprs.size()).append(".i32").append(")").append(arrayType);
         computation.append(END_STMT);
 
         // assign the values to the array
         for (int i = 0; i < exprs.size(); i++){
             OllirExprResult exprResult = visit(exprs.get(i));
             computation.append(exprResult.getComputation());
-            computation.append(arrayVar).append("[").append(i)
+            computation.append(arrayVar).append(arrayType)
+                    .append("[").append(i)
                     .append(".i32").append("]").append(ollirType).append(SPACE);
             computation.append(ASSIGN).append(ollirType).append(SPACE).append(exprResult.getCode()).append(END_STMT);
         }
