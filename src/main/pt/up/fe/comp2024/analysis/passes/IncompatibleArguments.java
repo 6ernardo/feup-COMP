@@ -39,7 +39,16 @@ public class IncompatibleArguments extends AnalysisVisitor {
         var parameters = table.getParameters(methodCall.get("name"));
         var arguments = methodCall.getChildren();
 
-        if (arguments.size()-1 < parameters.size()-1){ // check if there were too little arguments
+        boolean isVarArgs;
+
+        if (parameters.isEmpty()){
+            isVarArgs = false;
+        }else {
+            isVarArgs = (boolean) parameters.get(parameters.size() - 1).getType().getObject("isVarArgs");
+        }
+
+        if ((isVarArgs && arguments.size()-1 < parameters.size()-1) || (!isVarArgs && arguments.size()-1 < parameters.size())){
+            // check if there were too little arguments
             var message = "Method " + methodCall.get("name") + " requires " + parameters.size() +
                     " arguments but only " + (arguments.size()-1) + " were provided.";
             addReport(Report.newError(
@@ -51,13 +60,7 @@ public class IncompatibleArguments extends AnalysisVisitor {
             );
             return null;
         }
-        boolean isVarArgs;
 
-        if (parameters.isEmpty()){
-            isVarArgs = false;
-        }else {
-            isVarArgs = (boolean) parameters.get(parameters.size() - 1).getType().getObject("isVarArgs");
-        }
         boolean excessArgs = false;
         if (arguments.size()-1 > parameters.size()){
             if (!isVarArgs){
