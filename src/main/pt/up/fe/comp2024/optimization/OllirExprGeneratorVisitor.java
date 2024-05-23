@@ -260,6 +260,10 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             return false;
         }
 
+        if (!table.getMethods().contains(nameOfTheFunction)){
+            return false;
+        }
+
         var parameters = table.getParameters(nameOfTheFunction);
 
         if (parameters == null){

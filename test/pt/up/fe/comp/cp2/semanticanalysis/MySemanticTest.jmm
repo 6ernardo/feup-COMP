@@ -1,15 +1,13 @@
-class A
-    {
-    public int foo(int[] a)
-    {
-        return 1;
-    }
+import normal;
+import complex.Taked.stuff;
 
-    public int call()
-    {
-        int f;
-        f = this.foo();
-        return f;
-    }
+class A extends normal{
+    int fieldint;
+    boolean fieldbool;
+    String fieldString;
+    int[] fieldArray;
+    A fielda;
 
+    public static void main(String[] args){
+    }
 }
