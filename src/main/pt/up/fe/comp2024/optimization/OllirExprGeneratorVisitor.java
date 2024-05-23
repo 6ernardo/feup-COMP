@@ -177,6 +177,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     }
 
     private OllirExprResult visitArrayLengthExpr(JmmNode node, Void unused){
+        // temp.i32 :=.i32 arraylength(b.array.i32).i32;
         StringBuilder computation = new StringBuilder();
         StringBuilder code = new StringBuilder();
 
@@ -199,6 +200,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     }
 
     private OllirExprResult visitNewArrayExpr(JmmNode node, Void unused) {
+        // tmp.array.type :=.array.type new(array,size.i32).array.type;
+
         StringBuilder computation = new StringBuilder();
         StringBuilder code = new StringBuilder();
 
@@ -557,6 +560,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     }
 
     private OllirExprResult visitNewExpr(JmmNode node, Void unused) {
+        // tmp0.[nameOfClass] :=.[nameOfClass] new([nameOfClass]).[nameOfClass];
+        // invokespecial(tmp0.[nameOfClass], "<init>").V;
 
         StringBuilder computation = new StringBuilder();
         StringBuilder code = new StringBuilder();

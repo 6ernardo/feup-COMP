@@ -22,7 +22,10 @@ public class OptUtils {
     }
 
     public static String getLabel() {
-        labelNumber += 1;
+        // get a random integer
+        var randomInt = (int) (Math.random() * 1000);
+
+        labelNumber += randomInt;
         return "label" + labelNumber;
     }
 
