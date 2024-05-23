@@ -11,36 +11,10 @@ class A extends normal{
     public static void main(String[] args){
     }
 
-    public int testIntField(){
-        int a;
-        boolean b;
-        String s;
-        A ains;
-        normal n;
-
-        fieldint = 4;
-        a = fieldint+4;
-        return 0;
+    int testVarArgs(int... a){
+        fieldint = a[0];
+        fieldint = fieldArray[0] + fieldint;
+        return a[0];
     }
-
-    public boolean testbool(){
-       return true;
-    }
-
-    public int testControlFlow(int p1, int p2){
-        int a;
-        boolean b;
-
-        b = true;
-        if ( b && p1 < p2 && this.testbool() ){
-           a = 1;
-        }else{
-            a =2;
-        }
-
-        return a;
-
-    }
-
 
 }
