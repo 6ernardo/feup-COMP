@@ -435,7 +435,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
     private OllirExprResult visitBinExpr(JmmNode node, Void unused) {
 
-        boolean assignTempVariable = !ASSIGN_STMT.check(node.getParent());
+        var parent = node.getParent();
+        boolean assignTempVariable = !(ASSIGN_STMT.check(parent));
 
         String op = node.get("op");
         var opRtrnType = TypeUtils.getOperatorReturnType(op);
