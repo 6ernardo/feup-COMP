@@ -22,6 +22,28 @@ public class Miscellaneous extends AnalysisVisitor {
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
         addVisit(Kind.ARRAY_LENGTH_EXPR, this::visitLengthExpr);
         addVisit(Kind.TYPE, this::visitType);
+        addVisit(Kind.CLASS_DECL, this::visitClassDecl);
+    }
+
+    private Void visitClassDecl(JmmNode classNode, SymbolTable symbolTable) {
+        // check if the class is extending another class and if that class is imported
+        var superClass = symbolTable.getSuper();
+
+        if(superClass == null || symbolTable.getImports().contains(superClass)){
+            return null;
+        }
+
+        // Create a report
+        String message = "Superclass " + superClass + " not found in imports.";
+        addReport(Report.newError(
+                Stage.SEMANTIC,
+                NodeUtils.getLine(classNode),
+                NodeUtils.getColumn(classNode),
+                message,
+                null)
+        );
+
+        return null;
     }
 
     private Void visitLengthExpr(JmmNode node, SymbolTable table) {
@@ -72,6 +94,8 @@ public class Miscellaneous extends AnalysisVisitor {
 
         return null;
     }
+
+
 
 
 }

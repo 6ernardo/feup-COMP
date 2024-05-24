@@ -18,7 +18,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private static final String SPACE = " ";
     private static final String ASSIGN = ":=";
-    private final String END_STMT = ";\n";
+    private final String END_STMT = ";\n\n";
     private final String NL = "\n";
     private final String L_BRACKET = " {\n";
     private final String R_BRACKET = "}\n";
@@ -121,9 +121,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         StringBuilder code = new StringBuilder();
 
-        // get label
-        var condLabel = OptUtils.getLabel();
-        var stmtLabel = OptUtils.getLabel();
+        // get labels
+        var condLabel = OptUtils.getLabel("cond");
+        var stmtLabel = OptUtils.getLabel("whileBody");
 
         // extract nodes
         var conditionNode = whileStmt.getJmmChild(0); // expr
@@ -274,48 +274,33 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private String visitAssignStmt(JmmNode node, Void unused) {
 
-        //var lhs = exprVisitor.visit(node.getJmmChild(0));  // the left part is an ID not an Expr
+        // get info
+        var targetName = node.get("name");
+        var expr = exprVisitor.visit(node.getJmmChild(0));
 
-        var variableName = node.get("name");
+        // get type of target
+        var assign = TypeUtils.getVarRefType(targetName, table, node.getAncestor(METHOD_DECL));
+        if (assign == null) return "";
+        Type assignType = assign.a;
+        String scope = assign.b;
 
-        // add to the child node the expected type of the child Expr
+        // get type of assignment
+        String targetType = OptUtils.toOllirType(assignType);
 
-        var rhs = exprVisitor.visit(node.getJmmChild(0));
-
-        StringBuilder code = new StringBuilder();
-
-        // code to compute the children
-        code.append(rhs.getComputation());
-
-
-        // code to compute self
-        // statement has type of lhs
-        var varRefType = TypeUtils.getVarRefType(variableName, table, node.getAncestor(METHOD_DECL));
-        if (varRefType== null){
-            return "";
-        }
-
-        Type type = varRefType.a;
-        String scope = varRefType.b;
-
-        String typeString = OptUtils.toOllirType(type);
+        // formulate the assignment
+        var code = new StringBuilder();
 
         if (scope.equals("field")){
             code.append("putfield(this.").append(table.getClassName())
-                    .append(", ").append(variableName).append(typeString)
-                    .append(", ").append(rhs.getCode()).append(").V").append(END_STMT);
-        }else {
-            code.append(variableName);
-            code.append(typeString);
-            code.append(SPACE);
-
-            code.append(ASSIGN);
-            code.append(typeString);
-            code.append(SPACE);
-
-            code.append(rhs.getCode());
-            code.append(END_STMT);
+                    .append(", ").append(targetName).append(targetType)
+                    .append(", ").append(expr.getCode()).append(").V").append(END_STMT);
+        }else{
+            code.append(expr.getComputation());
+            code.append(targetName).append(targetType).append(SPACE);
+            code.append(ASSIGN).append(targetType).append(SPACE);
+            code.append(expr.getCode()).append(END_STMT);
         }
+
         return code.toString();
     }
 

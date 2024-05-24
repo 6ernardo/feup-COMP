@@ -1,13 +1,9 @@
-class A extends normal{
+import p;
 
-    public int testAnd(){
-        boolean b1;
-        boolean b2;
-        boolean b3;
-        int res;
+class c{
 
-        b1 = b1 && (b2 && b3);
-
-        return res;
+    int test(){
+        p.test();
+        return 0;
     }
 }

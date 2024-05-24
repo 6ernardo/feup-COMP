@@ -382,13 +382,6 @@ public class TypeUtils {
             }
         }
 
-        // check if its equal to the extended class
-        var superClass = table.getSuper();
-        if (superClass != null && superClass.equals(name)){
-            var type = new Type(name, false);
-            return new Pair<>(type, "super");
-        }
-
         // check if the variable is imported
         var imports = table.getImports();
         for (String s : imports) {

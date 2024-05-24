@@ -36,7 +36,8 @@ public enum Kind {
     WHILE_STMT,
     MAIN_RETURN_TYPE,
     NEW_ARRAY_EXPR,
-    BLOCK_STMT; // Added this kind
+    BLOCK_STMT,
+    STMT; // Added this kind
     private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, RETURN_STMT);
     private static final Set<Kind> EXPRESSIONS = Set.of(BINARY_EXPR, INTEGER_LITERAL, VAR_REF_EXPR);
 

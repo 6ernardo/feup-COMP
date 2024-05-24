@@ -537,7 +537,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         String scope = (String)type.getObject("scope");
 
-        if (scope.equals("import")){
+        if (scope.equals("import") || scope.equals("this")){
             return new OllirExprResult(id); // return the import
         }
 
