@@ -435,6 +435,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
     private OllirExprResult visitBinExpr(JmmNode node, Void unused) {
 
+        boolean assignTempVariable = !ASSIGN_STMT.check(node.getParent());
+
         String op = node.get("op");
         var opRtrnType = TypeUtils.getOperatorReturnType(op);
 
@@ -459,14 +461,21 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         // code to compute self
         String resOllirType = OptUtils.toOllirType(opRtrnType);
-        String code = OptUtils.getTemp() + resOllirType;
+        String code;
+        if(assignTempVariable) {
+            code = OptUtils.getTemp() + resOllirType;
 
-        computation.append(code).append(SPACE)
-                .append(ASSIGN).append(resOllirType).append(SPACE)
-                .append(lhs_result.getCode()).append(SPACE)
-                .append(op).append(resOllirType).append(SPACE)
-                .append(rhs_result.getCode()).append(END_STMT);
+            computation.append(code).append(SPACE)
+                    .append(ASSIGN).append(resOllirType).append(SPACE)
+                    .append(lhs_result.getCode()).append(SPACE)
+                    .append(op).append(resOllirType).append(SPACE)
+                    .append(rhs_result.getCode()).append(END_STMT);
 
+        }else{
+            code = lhs_result.getCode() + SPACE +
+                    op + resOllirType + SPACE +
+                    rhs_result.getCode();
+        }
         return new OllirExprResult(code, computation);
     }
 
