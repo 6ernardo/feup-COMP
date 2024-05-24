@@ -83,7 +83,6 @@ public class Cpf4_Jasmin {
         testOllirToJasmin(resource, null);
     }
 
-
     private static final String JASMIN_METHOD_REGEX_PREFIX = "\\.method\\s+((public|private)\\s+)?(\\w+)\\(\\)";
 
     /*checks if method declaration is correct (array)*/
