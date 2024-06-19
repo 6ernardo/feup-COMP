@@ -1,15 +1,6 @@
-## Group members
+# FEUP - COMP
 
-- Bernardo Ferreira Campos (up202006056@edu.fe.up.pt)
-- Eduardo da Silva Miranda (up202210537@edu.fe.up.pt)
-- Marcos António Sousa Costa (up202108869@edu.fe.up.pt)
+Project of the Compilers course unit at FEUP.
 
-## Work Distribution
+[**COMP Unit Info**](https://sigarra.up.pt/feup/pt/ucurr_geral.ficha_uc_view?pv_ocorrencia_id=520331)
 
-- Bernardo Ferreira Campos - 27.5 %
-- Eduardo da Silva Miranda - 27.5 %
-- Marcos António Sousa Costa - 45 %
-
-## Self-Assessment
-
-- We think our project deserves a 19 out of 20.
